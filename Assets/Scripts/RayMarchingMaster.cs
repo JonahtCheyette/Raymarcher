@@ -3,6 +3,8 @@
 public class RayMarchingMaster : MonoBehaviour {
     public ComputeShader RayMarchingShader;
     private RenderTexture _target;
+    //the skybox texture
+    public Texture skyboxTexture;
 
     //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
     private void OnRenderImage(RenderTexture source, RenderTexture destination) {

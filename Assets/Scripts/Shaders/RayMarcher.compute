@@ -1,0 +1,112 @@
+﻿#pragma kernel CSMain
+
+float4x4 cameraInverseProjection;
+float4x4 cameraToWorld;
+
+struct box {
+    float3 center;
+    float3 size;
+    //gotta love quaternions
+    float4 rotation;
+    float3 color;
+};
+
+struct sphere {
+    float3 center;
+    float radius;
+    float3 color;
+};
+
+struct torus {
+    float3 center;
+    //size of the big cirlce & size of the smaller circle
+    float2 torusDimensions;
+    //gotta love quaternions
+    float4 rotation;
+    float3 color;
+};
+
+struct plane {
+    //center, e.g. any point the plane goes through
+    float distAlongNormal;
+    float3 surfaceNormal;
+    float3 color;
+};
+
+struct cylinder {
+    float3 center;
+    float height;
+    float radius;
+    //gotta love quaternions
+    float4 rotation;
+    float3 color;
+};
+
+float3 rotatePoint(float3 p, float4 q) {
+    //rotating a point by a quaternion
+    //assuming quaterinions are in the forem x, y, z, w
+    return cross(cross(q.xyz, p) + q.w * p, -q.xyz) + dot(q.xyz, p) * q.xyz + q.w * (cross(q.xyz, p) + q.w * p);
+}
+
+float sdSphere (float3 p, sphere s) {
+    return length(p - s.center) - s.radius;
+}
+
+float sdBox (float3 p, box b) {
+    float3 pos = rotatePoint(p - b.center, float4(-b.rotation.xyz, b.rotation.w));
+    float3 offset = abs(pos) - b.size;
+    //distance from point outside box to edge (0 if inside box)
+    //max/min operation on vectpr dpes it component by component
+    float unsignedDst = length(max(offset, 0));
+    //-dst from point inside box to edge (0 if outside box)
+    float dstInsideBox = max(max(min(offset.x, 0), min(offset.y, 0)), min(offset.z, 0));
+    return unsignedDst + dstInsideBox;
+}
+
+float sdTorurs (float3 p, torus t) {
+    float3 pos = rotatePoint(p - t.center, float4(-t.rotation.xyz, t.rotation.w));
+    float2 q = float2(length(pos.xz) - t.torusDimensions.x, pos.y);
+    return length(q) - t.torusDimensions.y;
+}
+
+float sdPlane (float3 p, plane pl) {
+    return dot(p, pl.surfaceNormal) - pl.distAlongNormal;
+};
+
+float sdCylinder (float3 p, cylinder c) {
+    float3 pos = rotatePoint(p - c.center, float4(-c.rotation.xyz, c.rotation.w));
+    float2 d = abs(float2(length(pos.xz), pos.y)) - float2(c.height, c.radius);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+};
+
+float3 CreateCameraRay(float2 uv) {
+    // Invert the perspective projection of the view-space position
+    //gets rid of the projection that the camera does.
+    float3 direction = mul(cameraInverseProjection, float4(uv, 0.0f, 1.0f)).xyz;
+    // Transform the direction from camera to world space and normalize
+    //takes a direction shooting out from the camera and transforms it into a direction in world space
+    direction = mul(cameraToWorld, float4(direction, 0.0f)).xyz;
+    direction = normalize(direction);
+
+    return direction;
+}
+
+RWTexture2D<float4> Result;
+StructuredBuffer<box> boxes;
+StructuredBuffer<sphere> spheres;
+StructuredBuffer<torus> tori;
+StructuredBuffer<plane> planes;
+StructuredBuffer<cylinder> cylinders;
+Texture2D<float4> SkyboxTexture;
+
+// Sample the skybox and write it
+/*
+float theta = acos(ray.direction.y) / -PI;
+float phi = atan2(ray.direction.x, -ray.direction.z) / -PI * 0.5f;
+return SkyboxTexture.SampleLevel(samplerSkyboxTexture, float2(phi, theta), 0).xyz * 0.3f;
+*/
+
+[numthreads(8, 4, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+    Result[id.xy] = float4(id.x & id.y, (id.x & 15) / 15.0, (id.y & 15) / 15.0, 0.0);
+}
