@@ -1,7 +1,13 @@
 ﻿#pragma kernel CSMain
 
+static const int maxMarchingSteps = 150;
+static const float maxMarchingDistance = 100;
+static const float surfDistance = 0.01;
+
 float4x4 cameraInverseProjection;
 float4x4 cameraToWorld;
+
+float3 light;
 
 struct box {
     float3 center;
@@ -27,7 +33,7 @@ struct torus {
 };
 
 struct plane {
-    //center, e.g. any point the plane goes through
+    //distance along the axis specified, think of it as the plane's center
     float distAlongNormal;
     float3 surfaceNormal;
     float3 color;
@@ -41,6 +47,13 @@ struct cylinder {
     float4 rotation;
     float3 color;
 };
+
+RWTexture2D<float4> result;
+StructuredBuffer<box> boxes;
+StructuredBuffer<sphere> spheres;
+StructuredBuffer<torus> tori;
+StructuredBuffer<plane> planes;
+StructuredBuffer<cylinder> cylinders;
 
 float3 rotatePoint(float3 p, float4 q) {
     //rotating a point by a quaternion
@@ -63,7 +76,7 @@ float sdBox (float3 p, box b) {
     return unsignedDst + dstInsideBox;
 }
 
-float sdTorurs (float3 p, torus t) {
+float sdTorus (float3 p, torus t) {
     float3 pos = rotatePoint(p - t.center, float4(-t.rotation.xyz, t.rotation.w));
     float2 q = float2(length(pos.xz) - t.torusDimensions.x, pos.y);
     return length(q) - t.torusDimensions.y;
@@ -71,13 +84,13 @@ float sdTorurs (float3 p, torus t) {
 
 float sdPlane (float3 p, plane pl) {
     return dot(p, pl.surfaceNormal) - pl.distAlongNormal;
-};
+}
 
 float sdCylinder (float3 p, cylinder c) {
     float3 pos = rotatePoint(p - c.center, float4(-c.rotation.xyz, c.rotation.w));
     float2 d = abs(float2(length(pos.xz), pos.y)) - float2(c.height, c.radius);
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
-};
+}
 
 float3 CreateCameraRay(float2 uv) {
     // Invert the perspective projection of the view-space position
@@ -91,22 +104,109 @@ float3 CreateCameraRay(float2 uv) {
     return direction;
 }
 
-RWTexture2D<float4> Result;
-StructuredBuffer<box> boxes;
-StructuredBuffer<sphere> spheres;
-StructuredBuffer<torus> tori;
-StructuredBuffer<plane> planes;
-StructuredBuffer<cylinder> cylinders;
-Texture2D<float4> SkyboxTexture;
+float smin(float a, float b, float k) {
+    float res = exp2(-k * a) + exp2(-k * b);
+    return -log2(res) / k;
+}
 
-// Sample the skybox and write it
-/*
-float theta = acos(ray.direction.y) / -PI;
-float phi = atan2(ray.direction.x, -ray.direction.z) / -PI * 0.5f;
-return SkyboxTexture.SampleLevel(samplerSkyboxTexture, float2(phi, theta), 0).xyz * 0.3f;
-*/
+float distToScene(float3 p) {
+    float distance = 3.402823466e+38F;
+    uint numShapes, stride;
+    /*
+    boxes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        float boxDistance = sdBox(p, boxes[i]);
+
+        distance = min(distance, boxDistance);
+    }
+    */
+    spheres.GetDimensions(numShapes, stride);
+    for (uint j = 0; j < numShapes; j++) {
+        float sphereDistance = sdSphere(p, spheres[j]);
+
+        distance = min(distance, sphereDistance);
+    }
+    /*
+    tori.GetDimensions(numShapes, stride);
+    for (uint k = 0; k < numShapes; k++) {
+        float torusDistance = sdTorus(p, tori[k]);
+
+        distance = min(distance, torusDistance);
+    }*/
+
+    planes.GetDimensions(numShapes, stride);
+    for (uint m = 0; m < numShapes; m++) {
+        float planeDistance = sdPlane(p, planes[m]);
+
+        distance = min(distance, planeDistance);
+    }
+    /*
+    cylinders.GetDimensions(numShapes, stride);
+    for (uint n = 0; n < numShapes; n++) {
+        float cylinderDistance = sdCylinder(p, cylinders[n]);
+
+        distance = min(distance, cylinderDistance);
+    }*/
+
+    return distance;
+}
+
+float rayMarch(float3 startPos, float3 dir) {
+    float d = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (d > maxMarchingDistance || d < surfDistance) {
+            break;
+        }
+    }
+
+    return d;
+}
+
+float3 getNormal(float3 p) {
+    float2 e = float2(0.01, 0);
+    float d = distToScene(p);
+    float3 n = float3(d - distToScene(p - e.xyy), d - distToScene(p - e.yxy), d - distToScene(p - e.yyx));
+    return normalize(n);
+}
+
+float getLighting(float3 p) {
+    float3 l;
+    l = normalize(light - p);
+
+    float3 n = getNormal(p);
+    float dif = dot(n, l);
+    float d = rayMarch(p + surfDistance * 2 * n, l);
+
+    if (d < length(light - p)) {
+        dif *= 0.1;
+    }
+
+    return dif;
+}
 
 [numthreads(8, 4, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID) {
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15) / 15.0, (id.y & 15) / 15.0, 0.0);
+    // Get the dimensions of the RenderTexture
+    uint width, height;
+    result.GetDimensions(width, height);
+
+    float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+    float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
+
+    float dist = rayMarch(cameraPos, rayDir);
+    float3 endPoint = cameraPos + dist * rayDir;
+
+    float l = getLighting(endPoint);
+    result[id.xy] = float4(l, l, l, 1);
+    /*
+    if (dist < maxMarchingDistance) {
+        float lighting = getLighting(endPoint);
+        result[id.xy] = float4(getNormal(endPoint), 1);
+    } else {
+        result[id.xy] = float4(0.2, 0.2, 0.2, 1);
+    }*/
 }
