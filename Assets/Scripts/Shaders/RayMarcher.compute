@@ -6,6 +6,11 @@ static const float surfDistance = 0.01;
 
 float4x4 cameraInverseProjection;
 float4x4 cameraToWorld;
+bool renderSpheres;
+bool renderPlanes;
+bool renderBoxes;
+bool renderTori;
+bool renderCylinders;
 
 float3 light;
 
@@ -88,7 +93,7 @@ float sdPlane (float3 p, plane pl) {
 
 float sdCylinder (float3 p, cylinder c) {
     float3 pos = rotatePoint(p - c.center, float4(-c.rotation.xyz, c.rotation.w));
-    float2 d = abs(float2(length(pos.xz), pos.y)) - float2(c.height, c.radius);
+    float2 d = abs(float2(length(pos.xz), pos.y)) - float2(c.radius, c.height);
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
@@ -112,41 +117,51 @@ float smin(float a, float b, float k) {
 float distToScene(float3 p) {
     float distance = 3.402823466e+38F;
     uint numShapes, stride;
-    /*
-    boxes.GetDimensions(numShapes, stride);
-    for (uint i = 0; i < numShapes; i++) {
-        float boxDistance = sdBox(p, boxes[i]);
 
-        distance = min(distance, boxDistance);
+    if (renderBoxes) {
+        boxes.GetDimensions(numShapes, stride);
+        for (uint i = 0; i < numShapes; i++) {
+            float boxDistance = sdBox(p, boxes[i]);
+
+            distance = min(distance, boxDistance);
+        }
     }
-    */
-    spheres.GetDimensions(numShapes, stride);
-    for (uint j = 0; j < numShapes; j++) {
-        float sphereDistance = sdSphere(p, spheres[j]);
 
-        distance = min(distance, sphereDistance);
+    if (renderSpheres) {
+        spheres.GetDimensions(numShapes, stride);
+        for (uint j = 0; j < numShapes; j++) {
+            float sphereDistance = sdSphere(p, spheres[j]);
+
+            distance = min(distance, sphereDistance);
+        }
     }
-    /*
-    tori.GetDimensions(numShapes, stride);
-    for (uint k = 0; k < numShapes; k++) {
-        float torusDistance = sdTorus(p, tori[k]);
+    
+    if (renderTori) {
+        tori.GetDimensions(numShapes, stride);
+        for (uint k = 0; k < numShapes; k++) {
+            float torusDistance = sdTorus(p, tori[k]);
 
-        distance = min(distance, torusDistance);
-    }*/
-
-    planes.GetDimensions(numShapes, stride);
-    for (uint m = 0; m < numShapes; m++) {
-        float planeDistance = sdPlane(p, planes[m]);
-
-        distance = min(distance, planeDistance);
+            distance = min(distance, torusDistance);
+        }
     }
-    /*
-    cylinders.GetDimensions(numShapes, stride);
-    for (uint n = 0; n < numShapes; n++) {
-        float cylinderDistance = sdCylinder(p, cylinders[n]);
 
-        distance = min(distance, cylinderDistance);
-    }*/
+    if (renderPlanes) {
+        planes.GetDimensions(numShapes, stride);
+        for (uint m = 0; m < numShapes; m++) {
+            float planeDistance = sdPlane(p, planes[m]);
+
+            distance = min(distance, planeDistance);
+        }
+    }
+    
+    if (renderCylinders) {
+        cylinders.GetDimensions(numShapes, stride);
+        for (uint n = 0; n < numShapes; n++) {
+            float cylinderDistance = sdCylinder(p, cylinders[n]);
+
+            distance = min(distance, cylinderDistance);
+        }
+    }
 
     return distance;
 }
