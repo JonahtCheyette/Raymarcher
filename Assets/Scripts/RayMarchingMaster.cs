@@ -8,17 +8,17 @@ public class RayMarchingMaster : MonoBehaviour {
 
     private Camera _camera;
 
-    private ComputeBuffer spheres;
-    private ComputeBuffer planes;
-    private ComputeBuffer boxes;
-    private ComputeBuffer tori;
-    private ComputeBuffer cylinders;
+    private ComputeBuffer sphereBuffer;
+    private ComputeBuffer planeBuffer;
+    private ComputeBuffer boxBuffer;
+    private ComputeBuffer torusBuffer;
+    private ComputeBuffer cylinderBuffer;
 
-    public bool renderSpheres;
-    public bool renderPlanes;
-    public bool renderBoxes;
-    public bool renderTori;
-    public bool renderCylinders;
+    public Sphere[] spheres;
+    public Plane[] planes;
+    public Box[] boxes;
+    public Torus[] tori;
+    public Cylinder[] cylinders;
 
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
@@ -64,6 +64,7 @@ public class RayMarchingMaster : MonoBehaviour {
     }
 
     private void SetUpScene() {
+        SetupBuffers();
         InitSpheres();
         InitPlanes();
         InitBoxes();
@@ -71,83 +72,75 @@ public class RayMarchingMaster : MonoBehaviour {
         InitCylinders();
     }
 
+    private void SetupBuffers() {
+        sphereBuffer = new ComputeBuffer(1, 28);
+        rayMarchingShader.SetBuffer(0, "spheres", sphereBuffer);
+        sphereBuffer.Release();
+
+        planeBuffer = new ComputeBuffer(1, 28);
+        rayMarchingShader.SetBuffer(0, "planes", planeBuffer);
+        planeBuffer.Release();
+
+        boxBuffer = new ComputeBuffer(1, 52);
+        rayMarchingShader.SetBuffer(0, "boxes", boxBuffer);
+        boxBuffer.Release();
+
+        torusBuffer = new ComputeBuffer(1, 48);
+        rayMarchingShader.SetBuffer(0, "tori", torusBuffer);
+        torusBuffer.Release();
+
+        cylinderBuffer = new ComputeBuffer(1, 48);
+        rayMarchingShader.SetBuffer(0, "cylinders", cylinderBuffer);
+        cylinderBuffer.Release();
+    }
+
     private void InitSpheres() {
-        if (renderSpheres) {
-            Sphere[] tempSpheres = new Sphere[1];
-            tempSpheres[0] = new Sphere(Vector3.up, 0.5f, Vector3.one);
-            spheres = new ComputeBuffer(1, 28);
-            spheres.SetData(tempSpheres);
-            rayMarchingShader.SetBuffer(0, "spheres", spheres);
-        } else {
-            spheres = new ComputeBuffer(1, 28);
-            rayMarchingShader.SetBuffer(0, "spheres", spheres);
+        if(spheres.Length != 0) {
+            sphereBuffer = new ComputeBuffer(spheres.Length, 28);
+            sphereBuffer.SetData(spheres);
+            rayMarchingShader.SetBuffer(0, "spheres", sphereBuffer);
         }
     }
 
     private void InitPlanes() {
-        if (renderPlanes) {
-            Plane[] tempPlanes = new Plane[1];
-            tempPlanes[0] = new Plane(Vector3.up, 0, Vector3.one);
-            planes = new ComputeBuffer(1, 28);
-            planes.SetData(tempPlanes);
-            rayMarchingShader.SetBuffer(0, "planes", planes);
-        } else {
-            planes = new ComputeBuffer(1, 28);
-            rayMarchingShader.SetBuffer(0, "planes", planes);
+        if (planes.Length != 0) {
+            planeBuffer = new ComputeBuffer(planes.Length, 28);
+            planeBuffer.SetData(planes);
+            rayMarchingShader.SetBuffer(0, "planes", planeBuffer);
         }
     }
 
     private void InitBoxes() {
-        if (renderBoxes) {
-            Box[] tempBoxes = new Box[1];
-            tempBoxes[0] = new Box(Vector3.up, Vector3.one, new Vector4(0, 0.4f, 0, 0.9f), Vector3.one);
-            boxes = new ComputeBuffer(1, 52);
-            boxes.SetData(tempBoxes);
-            rayMarchingShader.SetBuffer(0, "boxes", boxes);
-        } else {
-            boxes = new ComputeBuffer(1, 52);
-            rayMarchingShader.SetBuffer(0, "boxes", boxes);
+        if (boxes.Length != 0) {
+            boxBuffer = new ComputeBuffer(boxes.Length, 52);
+            boxBuffer.SetData(boxes);
+            rayMarchingShader.SetBuffer(0, "boxes", boxBuffer);
         }
     }
 
     private void InitTori() {
-        if (renderTori) {
-            Torus[] tempTori = new Torus[1];
-            tempTori[0] = new Torus(Vector3.up, new Vector2(0.2f, 0.1f), new Vector4(0, 0, 0, 1), Vector3.one);
-            tori = new ComputeBuffer(1, 48);
-            tori.SetData(tempTori);
-            rayMarchingShader.SetBuffer(0, "tori", tori);
-        } else {
-            tori = new ComputeBuffer(1, 48);
-            rayMarchingShader.SetBuffer(0, "tori", tori);
+        if (tori.Length != 0) {
+            torusBuffer = new ComputeBuffer(tori.Length, 48);
+            torusBuffer.SetData(tori);
+            rayMarchingShader.SetBuffer(0, "tori", torusBuffer);
         }
     }
 
     private void InitCylinders() {
-        if (renderCylinders) {
-            Cylinder[] tempCylinders = new Cylinder[1];
-            tempCylinders[0] = new Cylinder(Vector3.up, 5, 1, new Vector4(-0.5f, 0, 0, 0.9f), Vector3.one);
-            cylinders = new ComputeBuffer(1, 48);
-            cylinders.SetData(tempCylinders);
-            rayMarchingShader.SetBuffer(0, "cylinders", cylinders);
-        } else {
-            cylinders = new ComputeBuffer(1, 48);
-            rayMarchingShader.SetBuffer(0, "cylinders", cylinders);
+        if (cylinders.Length != 0) {
+            cylinderBuffer = new ComputeBuffer(cylinders.Length, 48);
+            cylinderBuffer.SetData(cylinders);
+            rayMarchingShader.SetBuffer(0, "cylinders", cylinderBuffer);
         }
     }
 
     private void SetConstantShaderParameters() {
-
+        
     }
 
     private void SetDynamicShaderParameters() {
         rayMarchingShader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
         rayMarchingShader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
-        rayMarchingShader.SetBool("renderSpheres", renderSpheres);
-        rayMarchingShader.SetBool("renderPlanes", renderPlanes);
-        rayMarchingShader.SetBool("renderBoxes", renderBoxes);
-        rayMarchingShader.SetBool("renderTori", renderTori);
-        rayMarchingShader.SetBool("renderCylinders", renderCylinders);
         float[] light = new float[3];
         light[0] = lighting.transform.position.x;
         light[1] = lighting.transform.position.y;
@@ -156,32 +149,33 @@ public class RayMarchingMaster : MonoBehaviour {
     }
 
     private void OnDisable() {
-        if (spheres != null) {
-            spheres.Release();
+        if (sphereBuffer != null) {
+            sphereBuffer.Release();
         }
 
-        if (planes != null) {
-            planes.Release();
+        if (planeBuffer != null) {
+            planeBuffer.Release();
         }
 
-        if (boxes != null) {
-            boxes.Release();
+        if (boxBuffer != null) {
+            boxBuffer.Release();
         }
 
-        if (tori != null) {
-            tori.Release();
+        if (torusBuffer != null) {
+            torusBuffer.Release();
         }
 
-        if (cylinders != null) {
-            cylinders.Release();
+        if (cylinderBuffer != null) {
+            cylinderBuffer.Release();
         }
     }
 }
 
+[System.Serializable]
 public struct Sphere {
-    Vector3 position;
-    float radius;
-    Vector3 albedo;
+    public Vector3 position;
+    public float radius;
+    public Vector3 albedo;
 
     public Sphere(Vector3 pos, float r, Vector3 color) {
         position = pos;
@@ -190,10 +184,11 @@ public struct Sphere {
     }
 }
 
+[System.Serializable]
 public struct Plane {
-    float distAlongAxis;
-    Vector3 normal;
-    Vector3 albedo;
+    public float distAlongAxis;
+    public Vector3 normal;
+    public Vector3 albedo;
 
     public Plane(Vector3 axis, float dist, Vector3 color) {
         normal = axis;
@@ -202,11 +197,12 @@ public struct Plane {
     }
 }
 
+[System.Serializable]
 public struct Box {
-    Vector3 position;
-    Vector3 size;
-    Vector4 rotation;
-    Vector3 albedo;
+    public Vector3 position;
+    public Vector3 size;
+    public Vector4 rotation;
+    public Vector3 albedo;
 
     public Box(Vector3 pos, Vector3 s, Vector4 rot, Vector3 color) {
         position = pos;
@@ -216,11 +212,12 @@ public struct Box {
     }
 }
 
+[System.Serializable]
 public struct Torus {
-    Vector3 position;
-    Vector2 dimensions;
-    Vector4 rotation;
-    Vector3 albedo;
+    public Vector3 position;
+    public Vector2 dimensions;
+    public Vector4 rotation;
+    public Vector3 albedo;
 
     public Torus(Vector3 pos, Vector2 sizes, Vector4 rot, Vector3 color) {
         position = pos;
@@ -230,12 +227,13 @@ public struct Torus {
     }
 }
 
+[System.Serializable]
 public struct Cylinder {
-    Vector3 position;
-    float height;
-    float radius;
-    Vector4 rotation;
-    Vector3 albedo;
+    public Vector3 position;
+    public float height;
+    public float radius;
+    public Vector4 rotation;
+    public Vector3 albedo;
 
     public Cylinder(Vector3 pos, float h, float r, Vector4 rot, Vector3 color) {
         position = pos;
