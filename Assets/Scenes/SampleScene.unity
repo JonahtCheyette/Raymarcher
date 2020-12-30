@@ -311,18 +311,24 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e469e685061ac54aac45664a873cb15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rayMarchingShader: {fileID: 7200000, guid: e20a8bf652ff7b2479c4321c4606bf0a, type: 3}
   lighting: {fileID: 744715156}
-  renderSpheres: 0
-  renderPlanes: 1
-  renderBoxes: 0
-  renderTori: 0
-  renderCylinders: 1
+  spheres:
+  - position: {x: 0, y: 1, z: 0}
+    radius: 0.5
+    albedo: {x: 0, y: 1, z: 0}
+  planes:
+  - distAlongAxis: 0
+    normal: {x: 0, y: 1, z: 0}
+    albedo: {x: 1, y: 0, z: 0}
+  boxes: []
+  tori: []
+  cylinders: []
 --- !u!1 &1994268656
 GameObject:
   m_ObjectHideFlags: 0

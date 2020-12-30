@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\RayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\TestRotation.cs" />
     <None Include="Assets\Scripts\Shaders\RayMarcher.compute" />
+    <None Include="Assets\Scripts\Shaders\Basics.compute" />
     <Reference Include="UnityEngine">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.3f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
