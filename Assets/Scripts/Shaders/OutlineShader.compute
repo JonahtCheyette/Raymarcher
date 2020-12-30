@@ -1,0 +1,172 @@
+﻿#pragma kernel CSMain
+#include "Basics.compute"
+
+float3 light;
+
+float outlineSize;
+float outlineStrength;
+
+RWTexture2D<float4> result;
+StructuredBuffer<box> boxes;
+StructuredBuffer<sphere> spheres;
+StructuredBuffer<torus> tori;
+StructuredBuffer<plane> planes;
+StructuredBuffer<cylinder> cylinders;
+
+float distToScene(float3 p) {
+    float distance = 3.402823466e+38F;
+    uint numShapes, stride;
+
+    boxes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        float boxDistance = sdBox(p, boxes[i]);
+
+        distance = min(distance, boxDistance);
+    }
+
+    spheres.GetDimensions(numShapes, stride);
+    for (uint j = 0; j < numShapes; j++) {
+        float sphereDistance = sdSphere(p, spheres[j]);
+
+        distance = min(distance, sphereDistance);
+    }
+
+    tori.GetDimensions(numShapes, stride);
+    for (uint k = 0; k < numShapes; k++) {
+        float torusDistance = sdTorus(p, tori[k]);
+
+        distance = min(distance, torusDistance);
+    }
+
+    planes.GetDimensions(numShapes, stride);
+    for (uint m = 0; m < numShapes; m++) {
+        float planeDistance = sdPlane(p, planes[m]);
+
+        distance = min(distance, planeDistance);
+    }
+
+    cylinders.GetDimensions(numShapes, stride);
+    for (uint n = 0; n < numShapes; n++) {
+        float cylinderDistance = sdCylinder(p, cylinders[n]);
+
+        distance = min(distance, cylinderDistance);
+    }
+
+    return distance;
+}
+
+float rayMarch(float3 startPos, float3 dir) {
+    float d = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (d > maxMarchingDistance || d < surfDistance) {
+            break;
+        }
+    }
+
+    return d;
+}
+
+float2 rayMarchWithCount(float3 startPos, float3 dir) {
+    float d = 0;
+    float count = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (dist < outlineSize) {
+            count++;
+        }
+        if (d > maxMarchingDistance || d < surfDistance) {
+            break;
+        }
+    }
+
+    return float2(d, count);
+}
+
+float3 getNormal(float3 p) {
+    float2 e = float2(0.01, 0);
+    float d = distToScene(p);
+    float3 n = float3(d - distToScene(p - e.xyy), d - distToScene(p - e.yxy), d - distToScene(p - e.yyx));
+    return normalize(n);
+}
+
+float getLighting(float3 p) {
+    float3 l;
+    l = normalize(light - p);
+
+    float3 n = getNormal(p);
+    float dif = dot(n, l);
+    float d = rayMarch(p + surfDistance * 2 * n, l);
+
+    if (d < length(light - p)) {
+        dif *= 0.1;
+    }
+
+    return dif;
+}
+
+float3 albedoAtPoint(float3 p) {
+    uint numShapes, stride;
+
+    boxes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        if (sdBox(p, boxes[i]) < surfDistance) {
+            return boxes[i].color;
+        }
+    }
+
+    spheres.GetDimensions(numShapes, stride);
+    for (uint j = 0; j < numShapes; j++) {
+        if (sdSphere(p, spheres[j]) < surfDistance) {
+            return spheres[j].color;
+        }
+    }
+
+    tori.GetDimensions(numShapes, stride);
+    for (uint k = 0; k < numShapes; k++) {
+        if (sdTorus(p, tori[k]) < surfDistance) {
+            return tori[k].color;
+        }
+    }
+
+    planes.GetDimensions(numShapes, stride);
+    for (uint m = 0; m < numShapes; m++) {
+        if (sdPlane(p, planes[m]) < surfDistance) {
+            return planes[m].color;
+        }
+    }
+
+    cylinders.GetDimensions(numShapes, stride);
+    for (uint n = 0; n < numShapes; n++) {
+        if (sdCylinder(p, cylinders[n]) < surfDistance) {
+            return cylinders[n].color;
+        }
+    }
+
+    return float3(0, 0, 0);
+}
+
+[numthreads(8,4,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+    // Get the dimensions of the RenderTexture
+    uint width, height;
+    result.GetDimensions(width, height);
+
+    float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+    float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
+
+    float2 rayInfo = rayMarchWithCount(cameraPos, rayDir);
+    float3 endPoint = cameraPos + rayInfo.x * rayDir;
+
+    if (rayInfo.x < maxMarchingDistance) {
+        result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
+    } else {
+        result[id.xy] = float4(rayInfo.y * outlineStrength, rayInfo.y * outlineStrength, rayInfo.y * outlineStrength, 1);
+    }
+}

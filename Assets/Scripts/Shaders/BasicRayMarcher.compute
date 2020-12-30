@@ -142,9 +142,5 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     float dist = rayMarch(cameraPos, rayDir);
     float3 endPoint = cameraPos + dist * rayDir;
 
-    if (dist > 1) {
-        result[id.xy] = float4(1, 1, 1, 1);
-    }
-
     result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
 }

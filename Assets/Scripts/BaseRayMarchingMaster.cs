@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using UnityEditor;
 
-public class RayMarchingMaster : MonoBehaviour {
+public class BaseRayMarchingMaster : MonoBehaviour {
 
     public ComputeShader rayMarchingShader;
     public Light lighting;
@@ -134,11 +134,11 @@ public class RayMarchingMaster : MonoBehaviour {
         }
     }
 
-    private void SetConstantShaderParameters() {
+    public virtual void SetConstantShaderParameters() {
         
     }
 
-    private void SetDynamicShaderParameters() {
+    public virtual void SetDynamicShaderParameters() {
         rayMarchingShader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
         rayMarchingShader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
         float[] light = new float[3];
@@ -148,7 +148,7 @@ public class RayMarchingMaster : MonoBehaviour {
         rayMarchingShader.SetFloats("light", light);
     }
 
-    private void OnDisable() {
+    private void DestroyBuffers() {
         if (sphereBuffer != null) {
             sphereBuffer.Release();
         }
@@ -168,6 +168,14 @@ public class RayMarchingMaster : MonoBehaviour {
         if (cylinderBuffer != null) {
             cylinderBuffer.Release();
         }
+    }
+
+    private void OnDisable() {
+        DestroyBuffers();
+    }
+
+    private void OnApplicationQuit() {
+        DestroyBuffers();
     }
 }
 
