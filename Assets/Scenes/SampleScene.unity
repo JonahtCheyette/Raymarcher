@@ -225,6 +225,8 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
+  - component: {fileID: 963194231}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -311,29 +313,85 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e469e685061ac54aac45664a873cb15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rayMarchingShader: {fileID: 7200000, guid: e20a8bf652ff7b2479c4321c4606bf0a, type: 3}
   lighting: {fileID: 744715156}
-  spheres: []
-  planes:
-  - distAlongAxis: 0
-    normal: {x: 0, y: 1, z: 0}
+  autoUpdate: 0
+  shapes:
+  - shapeType: 0
+    position: {x: 0, y: 1, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 1, y: 0.5, z: 1}
     albedo: {x: 0, y: 1, z: 0}
-  boxes:
-  - position: {x: 2, y: 0, z: 0}
-    size: {x: 0.5, y: 0.5, z: 0.5}
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9526d6ac237206a49a7f46fd0a7f85b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayMarchingShader: {fileID: 7200000, guid: 1c2adb4a02754a94d93e7b46e0feb1bb, type: 3}
+  lighting: {fileID: 744715156}
+  autoUpdate: 0
+  shapes:
+  - shapeType: 0
+    position: {x: -2, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 1}
-    albedo: {x: 0, y: 0, z: 0}
-  tori:
-  - position: {x: -2, y: 0, z: 0}
-    dimensions: {x: 0.5, y: 0.2}
+    shapeInfo: {x: 0.8, y: 0.8, z: 0.8}
+    albedo: {x: 1, y: 0, z: 0}
+  - shapeType: 1
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    shapeInfo: {x: 0.8, y: 0, z: 0}
+    albedo: {x: 0, y: 1, z: 0}
+  - shapeType: 3
+    position: {x: 2, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 1}
-    albedo: {x: 0, y: 0, z: 0}
-  cylinders: []
+    shapeInfo: {x: 0.6, y: 0.2, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
+  outlineStrength: 0.01
+  outlineSize: 1
+--- !u!114 &963194231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 909c7a83d226eb54ebbd93ddbb545b1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayMarchingShader: {fileID: 7200000, guid: 20c652abeb458be4ba6d26e6a06cdcb5, type: 3}
+  lighting: {fileID: 744715156}
+  autoUpdate: 0
+  shapes:
+  - shapeType: 0
+    position: {x: -1, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.8, y: 0.8, z: 0.8}
+    albedo: {x: 1, y: 0, z: 0}
+  - shapeType: 3
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.8, y: 0.2, z: 0}
+    albedo: {x: 0, y: 1, z: 0}
+  - shapeType: 1
+    position: {x: 1, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    shapeInfo: {x: 0.8, y: 0, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
+  smoothing: 0.001
 --- !u!1 &1994268656
 GameObject:
   m_ObjectHideFlags: 0

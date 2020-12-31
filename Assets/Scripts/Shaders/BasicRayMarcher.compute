@@ -4,49 +4,17 @@
 float3 light;
 
 RWTexture2D<float4> result;
-StructuredBuffer<box> boxes;
-StructuredBuffer<sphere> spheres;
-StructuredBuffer<torus> tori;
-StructuredBuffer<plane> planes;
-StructuredBuffer<cylinder> cylinders;
+StructuredBuffer<shape> shapes;
 
 float distToScene(float3 p) {
     float distance = 3.402823466e+38F;
     uint numShapes, stride;
     
-    boxes.GetDimensions(numShapes, stride);
+    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        float boxDistance = sdBox(p, boxes[i]);
+        float shapeDistance = sdShape(p, shapes[i]);
 
-        distance = min(distance, boxDistance);
-    }
-
-    spheres.GetDimensions(numShapes, stride);
-    for (uint j = 0; j < numShapes; j++) {
-        float sphereDistance = sdSphere(p, spheres[j]);
-
-        distance = min(distance, sphereDistance);
-    }
-
-    tori.GetDimensions(numShapes, stride);
-    for (uint k = 0; k < numShapes; k++) {
-        float torusDistance = sdTorus(p, tori[k]);
-
-        distance = min(distance, torusDistance);
-    }
-
-    planes.GetDimensions(numShapes, stride);
-    for (uint m = 0; m < numShapes; m++) {
-        float planeDistance = sdPlane(p, planes[m]);
-
-        distance = min(distance, planeDistance);
-    }
-
-    cylinders.GetDimensions(numShapes, stride);
-    for (uint n = 0; n < numShapes; n++) {
-        float cylinderDistance = sdCylinder(p, cylinders[n]);
-
-        distance = min(distance, cylinderDistance);
+        distance = min(distance, shapeDistance);
     }
     
     return distance;
@@ -55,38 +23,10 @@ float distToScene(float3 p) {
 float3 albedoAtPoint(float3 p) {
     uint numShapes, stride;
 
-    boxes.GetDimensions(numShapes, stride);
+    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        if (sdBox(p, boxes[i]) < surfDistance) {
-            return boxes[i].color;
-        }
-    }
-
-    spheres.GetDimensions(numShapes, stride);
-    for (uint j = 0; j < numShapes; j++) {
-        if (sdSphere(p, spheres[j]) < surfDistance) {
-            return spheres[j].color;
-        }
-    }
-
-    tori.GetDimensions(numShapes, stride);
-    for (uint k = 0; k < numShapes; k++) {
-        if (sdTorus(p, tori[k]) < surfDistance) {
-            return tori[k].color;
-        }
-    }
-
-    planes.GetDimensions(numShapes, stride);
-    for (uint m = 0; m < numShapes; m++) {
-        if (sdPlane(p, planes[m]) < surfDistance) {
-            return planes[m].color;
-        }
-    }
-
-    cylinders.GetDimensions(numShapes, stride);
-    for (uint n = 0; n < numShapes; n++) {
-        if (sdCylinder(p, cylinders[n]) < surfDistance) {
-            return cylinders[n].color;
+        if (sdShape(p, shapes[i]) < surfDistance) {
+            return shapes[i].albedo;
         }
     }
 

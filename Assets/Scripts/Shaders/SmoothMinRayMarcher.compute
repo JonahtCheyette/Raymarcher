@@ -6,49 +6,17 @@ float smoothing;
 float3 light;
 
 RWTexture2D<float4> result;
-StructuredBuffer<box> boxes;
-StructuredBuffer<sphere> spheres;
-StructuredBuffer<torus> tori;
-StructuredBuffer<plane> planes;
-StructuredBuffer<cylinder> cylinders;
+StructuredBuffer<shape> shapes;
 
 float distToScene(float3 p) {
     float distance = 3.402823466e+38F;
     uint numShapes, stride;
 
-    boxes.GetDimensions(numShapes, stride);
+    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        float boxDistance = sdBox(p, boxes[i]);
+        float shapeDistance = sdShape(p, shapes[i]);
 
-        distance = smin(distance, boxDistance, smoothing);
-    }
-
-    spheres.GetDimensions(numShapes, stride);
-    for (uint j = 0; j < numShapes; j++) {
-        float sphereDistance = sdSphere(p, spheres[j]);
-
-        distance = smin(distance, sphereDistance, smoothing);
-    }
-
-    tori.GetDimensions(numShapes, stride);
-    for (uint k = 0; k < numShapes; k++) {
-        float torusDistance = sdTorus(p, tori[k]);
-
-        distance = smin(distance, torusDistance, smoothing);
-    }
-
-    planes.GetDimensions(numShapes, stride);
-    for (uint m = 0; m < numShapes; m++) {
-        float planeDistance = sdPlane(p, planes[m]);
-
-        distance = smin(distance, planeDistance, smoothing);
-    }
-
-    cylinders.GetDimensions(numShapes, stride);
-    for (uint n = 0; n < numShapes; n++) {
-        float cylinderDistance = sdCylinder(p, cylinders[n]);
-
-        distance = smin(distance, cylinderDistance, smoothing);
+        distance = smin(distance, shapeDistance, smoothing);
     }
 
     return distance;
@@ -96,47 +64,15 @@ float3 getCol(float3 p) {
     float3 col = 1;
     uint numShapes, stride;
 
-    boxes.GetDimensions(numShapes, stride);
+    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        float boxDistance = sdBox(p, boxes[i]);
+        float shapeDistance = sdShape(p, shapes[i]);
 
-        col = blendColor(distance, boxDistance, col, boxes[i].color, smoothing);
-        distance = min(distance, boxDistance);
+        col = blendColor(distance, shapeDistance, col, shapes[i].albedo, smoothing);
+        distance = min(distance, shapeDistance);
     }
 
-    spheres.GetDimensions(numShapes, stride);
-    for (uint j = 0; j < numShapes; j++) {
-        float sphereDistance = sdSphere(p, spheres[j]);
-
-        col = blendColor(distance, sphereDistance, col, spheres[j].color, smoothing);
-        distance = min(distance, sphereDistance);
-    }
-
-    tori.GetDimensions(numShapes, stride);
-    for (uint k = 0; k < numShapes; k++) {
-        float torusDistance = sdTorus(p, tori[k]);
-
-        col = blendColor(distance, torusDistance, col, tori[k].color, smoothing);
-        distance = min(distance, torusDistance);
-    }
-
-    planes.GetDimensions(numShapes, stride);
-    for (uint m = 0; m < numShapes; m++) {
-        float planeDistance = sdPlane(p, planes[m]);
-
-        col = blendColor(distance, planeDistance, col, planes[m].color, smoothing);
-        distance = min(distance, planeDistance);
-    }
-
-    cylinders.GetDimensions(numShapes, stride);
-    for (uint n = 0; n < numShapes; n++) {
-        float cylinderDistance = sdCylinder(p, cylinders[n]);
-
-        col = blendColor(distance, cylinderDistance, col, cylinders[n].color, smoothing);
-        distance = min(distance, cylinderDistance);
-    }
-
-    return col * (distance < 3.402823450e+38F);
+    return col * (distance < 3.402823462e+38F);
 }
 
 [numthreads(8, 4, 1)]
@@ -150,6 +86,6 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 
     float dist = rayMarch(cameraPos, rayDir);
     float3 endPoint = cameraPos + dist * rayDir;
-
-    result[id.xy] = float4(getCol(endPoint) * getLighting(endPoint), 1);
+    
+    result[id.xy] = float4(getLighting(endPoint) * getCol(endPoint), 1);
 }
