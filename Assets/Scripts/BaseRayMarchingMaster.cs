@@ -6,6 +6,8 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     public ComputeShader rayMarchingShader;
     public Light lighting;
 
+    public bool autoUpdate = false;
+
     private Camera _camera;
 
     private ComputeBuffer sphereBuffer;
@@ -65,11 +67,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private void SetUpScene() {
         SetupBuffers();
-        InitSpheres();
-        InitPlanes();
-        InitBoxes();
-        InitTori();
-        InitCylinders();
+        InitShapes();
     }
 
     private void SetupBuffers() {
@@ -92,6 +90,14 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         cylinderBuffer = new ComputeBuffer(1, 48);
         rayMarchingShader.SetBuffer(0, "cylinders", cylinderBuffer);
         cylinderBuffer.Release();
+    }
+
+    private void InitShapes() {
+        InitSpheres();
+        InitPlanes();
+        InitBoxes();
+        InitTori();
+        InitCylinders();
     }
 
     private void InitSpheres() {
@@ -176,6 +182,12 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private void OnApplicationQuit() {
         DestroyBuffers();
+    }
+
+    private void OnValidate() {
+        if (autoUpdate && Application.isPlaying) {
+            SetUpScene();
+        }
     }
 }
 

@@ -95,5 +95,11 @@ float3 CreateCameraRay(float2 uv) {
 
 float smin(float a, float b, float k) {
     float h = clamp(0.5 + 0.5 * (b - a) / k, 0, 1);
-    return b * h + a * (1 - h) - k * h * (1 - h);
+    return b * (1 - h) + a * h - k * h * (1 - h);
+}
+
+float3 blendColor(float a, float b, float3 colA, float3 colB, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0, 1);
+    float3 blendCol = lerp(colB, colA, h);
+    return blendCol;
 }
