@@ -29,7 +29,7 @@ float rayMarch(float3 startPos, float3 dir) {
         float3 p = startPos + d * dir;
         float dist = distToScene(p);
         d += dist;
-        if (d > maxMarchingDistance || d < surfDistance) {
+        if (d > maxMarchingDistance || dist < surfDistance) {
             break;
         }
     }

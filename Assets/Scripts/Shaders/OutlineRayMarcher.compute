@@ -49,7 +49,7 @@ float2 rayMarchWithCount(float3 startPos, float3 dir) {
         if (dist < outlineSize) {
             count++;
         }
-        if (d > maxMarchingDistance || d < surfDistance) {
+        if (d > maxMarchingDistance || dist < surfDistance) {
             break;
         }
     }
@@ -104,9 +104,5 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     float2 rayInfo = rayMarchWithCount(cameraPos, rayDir);
     float3 endPoint = cameraPos + rayInfo.x * rayDir;
 
-    if (rayInfo.x < maxMarchingDistance) {
-        result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
-    } else {
-        result[id.xy] = float4(rayInfo.y * outlineStrength, rayInfo.y * outlineStrength, rayInfo.y * outlineStrength, 1);
-    }
+    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint) + rayInfo.yyy * outlineStrength, 1);
 }

@@ -62,11 +62,11 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     private void SetUpScene() {
-        SetupBuffers();
+        SetupBuffer();
         InitShapes();
     }
 
-    private void SetupBuffers() {
+    private void SetupBuffer() {
         shapeBuffer = new ComputeBuffer(1, Shape.GetSize());
         rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
         shapeBuffer.Release();
@@ -110,7 +110,22 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private void OnValidate() {
         if (autoUpdate && Application.isPlaying) {
-            SetUpScene();
+            UpdateScene();
+        }
+    }
+
+    private void UpdateScene() {
+        if (shapes.Length != 0) {
+            if (shapes.Length != shapeBuffer.count) {
+                shapeBuffer.Release();
+                shapeBuffer = new ComputeBuffer(shapes.Length, Shape.GetSize());
+            }
+            shapeBuffer.SetData(shapes);
+            rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
+        } else {
+            shapeBuffer.Release();
+            shapeBuffer = new ComputeBuffer(1, Shape.GetSize());
+            rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
         }
     }
 
