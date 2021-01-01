@@ -109,7 +109,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     private void OnValidate() {
-        if (autoUpdate && Application.isPlaying) {
+        if (autoUpdate && Application.isPlaying && shapeBuffer != null) {
             UpdateScene();
         }
     }
@@ -125,6 +125,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         } else {
             shapeBuffer.Release();
             shapeBuffer = new ComputeBuffer(1, Shape.GetSize());
+            shapeBuffer.SetData(new Shape[1]);
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
         }
     }
