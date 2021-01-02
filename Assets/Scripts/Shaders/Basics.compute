@@ -57,6 +57,12 @@ float sdCylinder(float3 p, float4 rotation, float3 center, float2 size) {
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
+float sdCapsule(float3 p, float4 rotation, float3 center, float2 size) {
+    float3 pos = rotatePoint(p - center, float4(-rotation.xyz, rotation.w));
+    pos.y -= clamp(pos.y, 0, size.x);
+    return length(pos) - size.y;
+}
+
 float sdShape(float3 p, shape s) {
     if (s.shapeType == 0) {
         //box
@@ -73,6 +79,9 @@ float sdShape(float3 p, shape s) {
     } else if (s.shapeType == 4) {
         //cylinder
         return sdCylinder(p, s.rotation, s.position, s.shapeInfo.xy);
+    } else if (s.shapeType == 5) {
+        //capsule
+        return sdCapsule(p, s.rotation, s.position, s.shapeInfo.xy);
     }
 
     return maxMarchingDistance;

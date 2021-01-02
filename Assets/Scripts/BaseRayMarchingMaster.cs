@@ -4,7 +4,7 @@ using UnityEditor;
 public class BaseRayMarchingMaster : MonoBehaviour {
 
     public enum ShapeType {
-        box, sphere, plane, torus, cylinder
+        box, sphere, plane, torus, cylinder, capsule
     }
 
     public ComputeShader rayMarchingShader;
