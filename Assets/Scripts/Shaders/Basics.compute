@@ -78,7 +78,7 @@ float sdShape(float3 p, shape s) {
         return sdTorus(p, s.rotation, s.position, s.shapeInfo.xy);
     } else if (s.shapeType == 4) {
         //cylinder
-        return sdCylinder(p, s.rotation, s.position, s.shapeInfo.xy);
+        return sdCylinder(p, s.rotation, s.position, s.shapeInfo.yx);
     } else if (s.shapeType == 5) {
         //capsule
         return sdCapsule(p, s.rotation, s.position, s.shapeInfo.xy);
