@@ -1,0 +1,130 @@
+﻿#pragma kernel CSMain
+#include "Basics.compute"
+
+float3 light;
+
+struct modifier {
+    float3 elongation;
+    float rounding;
+    int doOnioning;
+    float layerThickness;
+};
+
+RWTexture2D<float4> result;
+StructuredBuffer<shape> shapes;
+StructuredBuffer<modifier> modifiers;
+
+float sdModifiedShape(float3 p, shape s, modifier m) {
+    float3 pos = rotatePoint(p - s.position, float4(-s.rotation.xyz, s.rotation.w));
+    float3 q = abs(pos) - m.elongation;
+    float d = maxMarchingDistance;
+    if (s.shapeType == 0) {
+        //box
+        d = sdBox(max(q, 0), float4(0,0,0,1), float3(0,0,0), s.shapeInfo) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+    else if (s.shapeType == 1) {
+        //sphere
+        d = sdSphere(max(q, 0), float3(0, 0, 0), s.shapeInfo.x) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+    else if (s.shapeType == 2) {
+        //plane
+        d = sdPlane(max(q, 0), s.position, s.shapeInfo.x) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+    else if (s.shapeType == 3) {
+        //torus
+        d = sdTorus(max(q, 0), float4(0, 0, 0, 1), float3(0, 0, 0), s.shapeInfo.xy) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+    else if (s.shapeType == 4) {
+        //cylinder
+        d = sdCylinder(max(q, 0), float4(0, 0, 0, 1), float3(0, 0, 0), s.shapeInfo.yx) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+    else if (s.shapeType == 5) {
+        //capsule
+        d = sdCapsule(max(q, 0), float4(0, 0, 0, 1), float3(0, 0, 0), s.shapeInfo.xy) + min(max(q.x, max(q.y, q.z)), 0);
+    }
+
+    if (m.doOnioning == 1) {
+        d = abs(d) - m.layerThickness;
+    }
+    d -= m.rounding;
+
+    return d;
+}
+
+float distToScene(float3 p) {
+    float distance = 3.402823466e+38F;
+    uint numShapes, stride;
+
+    shapes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
+        distance = min(distance, shapeDistance);
+    }
+
+    return distance;
+}
+
+float3 albedoAtPoint(float3 p) {
+    uint numShapes, stride;
+
+    shapes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        if (sdModifiedShape(p, shapes[i], modifiers[i]) < surfDistance) {
+            return shapes[i].albedo;
+        }
+    }
+
+    return float3(0, 0, 0);
+}
+
+float rayMarch(float3 startPos, float3 dir) {
+    float d = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (d > maxMarchingDistance || dist < surfDistance) {
+            break;
+        }
+    }
+
+    return d;
+}
+
+float3 getNormal(float3 p) {
+    float2 e = float2(0.01, 0);
+    float d = distToScene(p);
+    float3 n = float3(d - distToScene(p - e.xyy), d - distToScene(p - e.yxy), d - distToScene(p - e.yyx));
+    return normalize(n);
+}
+
+float getLighting(float3 p) {
+    float3 l;
+    l = normalize(light - p);
+
+    float3 n = getNormal(p);
+    float dif = dot(n, l);
+    float d = rayMarch(p + surfDistance * 2 * n, l);
+
+    if (d < length(light - p)) {
+        dif *= 0.1;
+    }
+
+    return dif;
+}
+
+[numthreads(8, 4, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+    // Get the dimensions of the RenderTexture
+    uint width, height;
+    result.GetDimensions(width, height);
+
+    float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+    float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
+
+    float dist = rayMarch(cameraPos, rayDir);
+    float3 endPoint = cameraPos + dist * rayDir;
+
+    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
+}

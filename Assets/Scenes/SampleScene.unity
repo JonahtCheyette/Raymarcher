@@ -228,6 +228,7 @@ GameObject:
   - component: {fileID: 963194230}
   - component: {fileID: 963194231}
   - component: {fileID: 963194232}
+  - component: {fileID: 963194233}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -402,7 +403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1eefbc7aff1b1514897966de8a104d0c, type: 3}
   m_Name: 
@@ -424,19 +425,45 @@ MonoBehaviour:
   - shapeType: 4
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 1}
-    shapeInfo: {x: 2, y: 1, z: 0}
-    albedo: {x: 1, y: 0, z: 0}
+    shapeInfo: {x: 2.13, y: 1, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
   - shapeType: 4
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0.7, y: 0, z: 0, w: 0.7}
-    shapeInfo: {x: 2, y: 1, z: 0}
-    albedo: {x: 1, y: 0, z: 0}
+    shapeInfo: {x: 2.13, y: 1, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
   - shapeType: 4
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0.7, w: 0.7}
-    shapeInfo: {x: 2, y: 1, z: 0}
-    albedo: {x: 1, y: 0, z: 0}
+    shapeInfo: {x: 2.13, y: 1, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
   intersections: 02000000010000000100000001000000
+--- !u!114 &963194233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7cfb8c16c8ac1649a6b396743ec6f2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayMarchingShader: {fileID: 7200000, guid: 6874dd22e4da0b346b8000e1821d308e, type: 3}
+  lighting: {fileID: 744715156}
+  autoUpdate: 0
+  shapes:
+  - shapeType: 0
+    position: {x: -2, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.6, y: 0.6, z: 0.6}
+    albedo: {x: 1, y: 0, z: 0}
+  modifiers:
+  - elongation: {x: 0, y: 0, z: 0}
+    rounding: 0
+    doOnioning: 0
+    layerThickness: 0
 --- !u!1 &1994268656
 GameObject:
   m_ObjectHideFlags: 0
