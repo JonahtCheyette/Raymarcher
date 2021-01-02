@@ -61,7 +61,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         SetConstantShaderParameters();
     }
 
-    private void SetUpScene() {
+    public virtual void SetUpScene() {
         SetupBuffer();
         InitShapes();
     }
@@ -94,7 +94,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         rayMarchingShader.SetFloats("light", light);
     }
 
-    private void DestroyBuffer() {
+    public virtual void DestroyBuffer() {
         if (shapeBuffer != null) {
             shapeBuffer.Release();
         }
@@ -108,13 +108,13 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         DestroyBuffer();
     }
 
-    private void OnValidate() {
+    public virtual void OnValidate() {
         if (autoUpdate && Application.isPlaying && shapeBuffer != null) {
             UpdateScene();
         }
     }
 
-    private void UpdateScene() {
+    public virtual void UpdateScene() {
         if (shapes.Length != 0) {
             if (shapes.Length != shapeBuffer.count) {
                 shapeBuffer.Release();
