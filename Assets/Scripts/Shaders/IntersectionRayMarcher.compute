@@ -36,15 +36,27 @@ float distToScene(float3 p) {
 
 float3 albedoAtPoint(float3 p) {
     uint numShapes, stride;
+    float3 color = 0;
 
     shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        if (sdShape(p, shapes[i]) < surfDistance) {
-            return shapes[i].albedo;
+        float shapeDistance = sdShape(p, shapes[i]);
+        if (shapeDistance < surfDistance) {
+            if (i != numShapes - 1 && intersections[i] == 2) {
+                //intersection
+                if (abs(sdShape(p, shapes[i + 1])) - abs(shapeDistance) < 0.00390625) {
+                    color = shapes[i + 1].albedo;
+                } else {
+                    color = shapes[i].albedo;
+                    i++;
+                }
+            } else {
+                color = shapes[i].albedo;
+            }
         }
     }
 
-    return float3(0, 0, 0);
+    return color;
 }
 
 float rayMarch(float3 startPos, float3 dir) {
