@@ -6,6 +6,9 @@ float3 light;
 float outlineSize;
 float outlineStrength;
 
+float3 inner;
+float3 outer;
+
 RWTexture2D<float4> result;
 StructuredBuffer<shape> shapes;
 
@@ -38,23 +41,23 @@ float rayMarch(float3 startPos, float3 dir) {
     return d;
 }
 
-float2 rayMarchWithCount(float3 startPos, float3 dir) {
+float4 rayMarchWithOutlineColor(float3 startPos, float3 dir) {
     float d = 0;
-    float count = 0;
+    float3 color = 0;
 
     for (int i = 0; i < maxMarchingSteps; i++) {
         float3 p = startPos + d * dir;
         float dist = distToScene(p);
         d += dist;
         if (dist < outlineSize) {
-            count++;
+            color += lerp(inner, outer, dist/outlineSize);
         }
         if (d > maxMarchingDistance || dist < surfDistance) {
             break;
         }
     }
 
-    return float2(d, count);
+    return float4(d, color * outlineStrength);
 }
 
 float3 getNormal(float3 p) {
@@ -101,8 +104,8 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
     float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
 
-    float2 rayInfo = rayMarchWithCount(cameraPos, rayDir);
+    float4 rayInfo = rayMarchWithOutlineColor(cameraPos, rayDir);
     float3 endPoint = cameraPos + rayInfo.x * rayDir;
 
-    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint) + rayInfo.yyy * outlineStrength, 1);
+    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint) + rayInfo.yzw, 1);
 }
