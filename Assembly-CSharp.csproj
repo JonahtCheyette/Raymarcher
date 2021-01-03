@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\BarebonesComputeShaderRenderer.cs" />
     <Compile Include="Assets\Scripts\BaseRayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\CamMove.cs" />
     <Compile Include="Assets\Scripts\IntersectionRayMarchingMaster.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Assets\Scripts\TestRotation.cs" />
     <None Include="Assets\Scripts\Shaders\SmoothMinRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\BasicRayMarcher.compute" />
+    <None Include="Assets\Scripts\Shaders\BarebonesRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\ModifierRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\IntersectionRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\OutlineRayMarcher.compute" />
