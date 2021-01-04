@@ -67,11 +67,13 @@
     <Compile Include="Assets\Scripts\BaseRayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\CamMove.cs" />
     <Compile Include="Assets\Scripts\IntersectionRayMarchingMaster.cs" />
+    <Compile Include="Assets\Scripts\MeltTheComputer.cs" />
     <Compile Include="Assets\Scripts\ModifierRayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\OutlineRayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\SmoothRayMarchingMaster.cs" />
     <Compile Include="Assets\Scripts\TestRotation.cs" />
     <None Include="Assets\Scripts\Shaders\SmoothMinRayMarcher.compute" />
+    <None Include="Assets\Scripts\Shaders\MeltMyComputer.compute" />
     <None Include="Assets\Scripts\Shaders\BasicRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\BarebonesRayMarcher.compute" />
     <None Include="Assets\Scripts\Shaders\ModifierRayMarcher.compute" />

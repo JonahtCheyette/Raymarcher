@@ -8,7 +8,7 @@ RWTexture2D<float4> result;
 //from http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/
 float mandelbulb(float3 p) {
     //somewhat arbitrary, just make sure it's a int > 1
-    int power = 8;
+    int power = 6;
     float3 z = p;
     float dr = 1.0;
     float r = 0.0;
@@ -39,7 +39,7 @@ float mandelbulb(float3 p) {
 
 float distToScene(float3 p) {
 
-    return mandelbulb(p / 2);
+    return mandelbulb(p / 3);
 }
 
 float3 albedoAtPoint(float3 p) {
@@ -87,6 +87,25 @@ float getLighting(float3 p) {
     return dif;
 }
 
+float4 rayMarchWithOutlineColor(float3 startPos, float3 dir) {
+    float d = 0;
+    float3 color = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (dist < 1) {
+            color += float3(1,1,1);
+        }
+        if (d > maxMarchingDistance || dist < surfDistance) {
+            break;
+        }
+    }
+
+    return float4(d, color * 0.01);
+}
+
 [numthreads(8, 4, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID) {
     // Get the dimensions of the RenderTexture
@@ -96,9 +115,9 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
     float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
 
-    float dist = rayMarch(cameraPos, rayDir);
-    float3 endPoint = cameraPos + dist * rayDir;
+    float4 rayInfo = rayMarchWithOutlineColor(cameraPos, rayDir);
+    float3 endPoint = cameraPos + rayInfo.x * rayDir;
 
-    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
+
+    result[id.xy] = float4(getLighting(endPoint) * albedoAtPoint(endPoint), 1);
 }
-

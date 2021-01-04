@@ -1,8 +1,6 @@
 ﻿#pragma kernel CSMain
 #include "Basics.compute"
 
-float3 light;
-
 struct modifier {
     float3 elongation;
     float rounding;
@@ -10,9 +8,18 @@ struct modifier {
     float layerThickness;
 };
 
+float3 light;
+
+float outlineSize;
+float outlineStrength;
+
+float3 inner;
+float3 outer;
+
 RWTexture2D<float4> result;
 StructuredBuffer<shape> shapes;
 StructuredBuffer<modifier> modifiers;
+StructuredBuffer<int> intersections;
 
 float sdModifiedShape(float3 p, shape s, modifier m) {
     float3 pos = rotatePoint(p - s.position, float4(-s.rotation.xyz, s.rotation.w));
@@ -20,7 +27,7 @@ float sdModifiedShape(float3 p, shape s, modifier m) {
     float d = maxMarchingDistance;
     if (s.shapeType == 0) {
         //box
-        d = sdBox(max(q, 0), float4(0,0,0,1), float3(0,0,0), s.shapeInfo) + min(max(q.x, max(q.y, q.z)), 0);
+        d = sdBox(max(q, 0), float4(0, 0, 0, 1), float3(0, 0, 0), s.shapeInfo) + min(max(q.x, max(q.y, q.z)), 0);
     }
     else if (s.shapeType == 1) {
         //sphere
@@ -28,7 +35,7 @@ float sdModifiedShape(float3 p, shape s, modifier m) {
     }
     else if (s.shapeType == 2) {
         //plane
-        d = sdPlane(max(q, 0), s.position, s.shapeInfo.x) + min(max(q.x, max(q.y, q.z)), 0);
+        d = sdPlane(p, s.position, s.shapeInfo.x);
     }
     else if (s.shapeType == 3) {
         //torus
@@ -57,23 +64,27 @@ float distToScene(float3 p) {
 
     shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        distance = min(distance, sdModifiedShape(p, shapes[i], modifiers[i]));
-    }
-
-    return distance;
-}
-
-float3 albedoAtPoint(float3 p) {
-    uint numShapes, stride;
-
-    shapes.GetDimensions(numShapes, stride);
-    for (uint i = 0; i < numShapes; i++) {
-        if (sdModifiedShape(p, shapes[i], modifiers[i]) < surfDistance) {
-            return shapes[i].albedo;
+        float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
+        if (i != 0) {
+            if (intersections[i - 1] == 0) {
+                //union
+                distance = min(distance, shapeDistance);
+            }
+            else if (intersections[i - 1] == 1) {
+                //subtraction
+                distance = max(distance, -shapeDistance);
+            }
+            else {
+                //intersection
+                distance = max(distance, shapeDistance);
+            }
+        }
+        else {
+            distance = min(distance, shapeDistance);
         }
     }
 
-    return float3(0, 0, 0);
+    return distance;
 }
 
 float rayMarch(float3 startPos, float3 dir) {
@@ -89,6 +100,25 @@ float rayMarch(float3 startPos, float3 dir) {
     }
 
     return d;
+}
+
+float4 rayMarchWithOutlineColor(float3 startPos, float3 dir) {
+    float d = 0;
+    float3 color = 0;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float3 p = startPos + d * dir;
+        float dist = distToScene(p);
+        d += dist;
+        if (dist < outlineSize) {
+            color += lerp(inner, outer, dist / outlineSize);
+        }
+        if (d > maxMarchingDistance || dist < surfDistance) {
+            break;
+        }
+    }
+
+    return float4(d, color * outlineStrength);
 }
 
 float3 getNormal(float3 p) {
@@ -113,6 +143,33 @@ float getLighting(float3 p) {
     return dif;
 }
 
+float3 albedoAtPoint(float3 p) {
+    uint numShapes, stride;
+    float3 color = 0;
+
+    shapes.GetDimensions(numShapes, stride);
+    for (uint i = 0; i < numShapes; i++) {
+        float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
+        if (shapeDistance < surfDistance) {
+            if (i != numShapes - 1 && intersections[i] == 2) {
+                //intersection
+                if (abs(sdShape(p, shapes[i + 1])) - abs(shapeDistance) < 0.00390625) {
+                    color = shapes[i + 1].albedo;
+                }
+                else {
+                    color = shapes[i].albedo;
+                    i++;
+                }
+            }
+            else {
+                color = shapes[i].albedo;
+            }
+        }
+    }
+
+    return color;
+}
+
 [numthreads(8, 4, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID) {
     // Get the dimensions of the RenderTexture
@@ -122,8 +179,8 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     float3 cameraPos = mul(cameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
     float3 rayDir = CreateCameraRay(float2((id.xy) / float2(width, height) * 2.0f - 1.0f));
 
-    float dist = rayMarch(cameraPos, rayDir);
-    float3 endPoint = cameraPos + dist * rayDir;
+    float4 rayInfo = rayMarchWithOutlineColor(cameraPos, rayDir);
+    float3 endPoint = cameraPos + rayInfo.x * rayDir;
 
-    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint), 1);
+    result[id.xy] = float4(albedoAtPoint(endPoint) * getLighting(endPoint) + rayInfo.yzw, 1);
 }

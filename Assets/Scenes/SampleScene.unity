@@ -207,7 +207,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 744715155}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: -4.3}
+  m_LocalPosition: {x: 0, y: 1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -229,6 +229,8 @@ GameObject:
   - component: {fileID: 963194231}
   - component: {fileID: 963194232}
   - component: {fileID: 963194233}
+  - component: {fileID: 963194234}
+  - component: {fileID: 963194235}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -324,11 +326,21 @@ MonoBehaviour:
   lighting: {fileID: 744715156}
   autoUpdate: 0
   shapes:
-  - shapeType: 5
+  - shapeType: 4
+    position: {x: -2, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.6, y: 0.6, z: 0.6}
+    albedo: {x: 1, y: 0, z: 0}
+  - shapeType: 1
     position: {x: 0, y: 0, z: 0}
     rotation: {x: -0.4, y: 0.7, z: 0, w: 0.6}
-    shapeInfo: {x: 1, y: 0.2, z: 0}
-    albedo: {x: 1, y: 1, z: 0}
+    shapeInfo: {x: 0.8, y: 0, z: 0}
+    albedo: {x: 0, y: 1, z: 0}
+  - shapeType: 3
+    position: {x: 2, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.6, y: 0.2, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -410,7 +422,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayMarchingShader: {fileID: 7200000, guid: e941b0a5ff661164c86d951991183211, type: 3}
   lighting: {fileID: 744715156}
-  autoUpdate: 0
+  autoUpdate: 1
   shapes:
   - shapeType: 0
     position: {x: 0, y: 0, z: 0}
@@ -445,7 +457,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f7cfb8c16c8ac1649a6b396743ec6f2a, type: 3}
   m_Name: 
@@ -464,6 +476,69 @@ MonoBehaviour:
     rounding: 0
     doOnioning: 0
     layerThickness: 0
+--- !u!114 &963194234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b18a9067ddcd45499d1afc3831525b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 7200000, guid: 545a8170eb64f1e4ab408794042c3bc5, type: 3}
+  lighting: {fileID: 744715156}
+--- !u!114 &963194235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aca7774b0c1bf449ae2c8f9b9f48c50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayMarchingShader: {fileID: 7200000, guid: 620b59cf87af2f242ab8ca3d731b7d77, type: 3}
+  lighting: {fileID: 744715156}
+  autoUpdate: 0
+  shapes:
+  - shapeType: 0
+    position: {x: -1, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.6, y: 0.6, z: 0.6}
+    albedo: {x: 1, y: 0, z: 0}
+  - shapeType: 1
+    position: {x: 1, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.8, y: 0, z: 0}
+    albedo: {x: 0, y: 1, z: 0}
+  - shapeType: 3
+    position: {x: 0, y: 3, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    shapeInfo: {x: 0.6, y: 0.2, z: 0}
+    albedo: {x: 0, y: 0, z: 1}
+  modifiers:
+  - elongation: {x: 0, y: 0, z: 0}
+    rounding: 0
+    doOnioning: 1
+    layerThickness: 0.28
+  - elongation: {x: 0, y: 0.42, z: 0}
+    rounding: 0
+    doOnioning: 0
+    layerThickness: 0
+  - elongation: {x: 0, y: 0, z: 0}
+    rounding: 0
+    doOnioning: 0
+    layerThickness: 0
+  outlineStrength: 0.01
+  outlineSize: 1
+  inner: {r: 1, g: 1, b: 1, a: 0}
+  outer: {r: 1, g: 0, b: 0, a: 0}
+  intersections: 0000000000000000
 --- !u!1 &1994268656
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,10 +624,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1994268656}
-  m_LocalRotation: {x: 0.4780788, y: 0, z: 0, w: 0.878317}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 3000, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 57.12, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
