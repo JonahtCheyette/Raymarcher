@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SmoothRayMarchingMaster : BaseRayMarchingMaster {
-    [Min(0.001f)]
+    [Min(0)]
     public float smoothing;
 
     public override void SetDynamicShaderParameters() {

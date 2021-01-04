@@ -8,6 +8,8 @@ struct modifier {
     float layerThickness;
 };
 
+float smoothing;
+
 float3 light;
 
 float outlineSize;
@@ -68,19 +70,19 @@ float distToScene(float3 p) {
         if (i != 0) {
             if (intersections[i - 1] == 0) {
                 //union
-                distance = min(distance, shapeDistance);
+                distance = smin(distance, shapeDistance, smoothing);
             }
             else if (intersections[i - 1] == 1) {
                 //subtraction
-                distance = max(distance, -shapeDistance);
+                distance = smax(distance, -shapeDistance, smoothing);
             }
             else {
                 //intersection
-                distance = max(distance, shapeDistance);
+                distance = smax(distance, shapeDistance, smoothing);
             }
         }
         else {
-            distance = min(distance, shapeDistance);
+            distance = smin(distance, shapeDistance, smoothing);
         }
     }
 
@@ -134,7 +136,7 @@ float getLighting(float3 p) {
 
     float3 n = getNormal(p);
     float dif = dot(n, l);
-    float d = rayMarch(p + surfDistance * 2 * n, l);
+    float d = rayMarch(p + surfDistance * 3 * n, l);
 
     if (d < length(light - p)) {
         dif *= 0.1;
@@ -144,30 +146,19 @@ float getLighting(float3 p) {
 }
 
 float3 albedoAtPoint(float3 p) {
+    float distance = 3.402823466e+38F;
+    float3 col = 1;
     uint numShapes, stride;
-    float3 color = 0;
 
     shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
-        float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
-        if (shapeDistance < surfDistance) {
-            if (i != numShapes - 1 && intersections[i] == 2) {
-                //intersection
-                if (abs(sdShape(p, shapes[i + 1])) - abs(shapeDistance) < 0.00390625) {
-                    color = shapes[i + 1].albedo;
-                }
-                else {
-                    color = shapes[i].albedo;
-                    i++;
-                }
-            }
-            else {
-                color = shapes[i].albedo;
-            }
-        }
+        float shapeDistance = sdShape(p, shapes[i]);
+
+        col = blendColor(distance, shapeDistance, col, shapes[i].albedo, smoothing);
+        distance = min(distance, shapeDistance);
     }
 
-    return color;
+    return col * (distance < 3.402823462e+38F);
 }
 
 [numthreads(8, 4, 1)]

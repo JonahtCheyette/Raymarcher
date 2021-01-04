@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class MeltTheComputer : ModifierRayMarchingMaster {
+    [Min(0)]
+    public float smoothing;
+
     [Range(0, 1)]
     public float outlineStrength;
 
@@ -22,6 +25,7 @@ public class MeltTheComputer : ModifierRayMarchingMaster {
         rayMarchingShader.SetFloat("outlineStrength", outlineStrength);
         rayMarchingShader.SetFloats("inner", new float[] { inner.r, inner.g, inner.b });
         rayMarchingShader.SetFloats("outer", new float[] { outer.r, outer.g, outer.b });
+        rayMarchingShader.SetFloat("smoothing", smoothing);
     }
 
     public override void OnValidate() {
