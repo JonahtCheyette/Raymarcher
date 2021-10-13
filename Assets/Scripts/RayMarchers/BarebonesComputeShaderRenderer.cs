@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BarebonesComputeShaderRenderer : MonoBehaviour {
-    public ComputeShader shader;
-
     public Light lighting;
 
     private Camera _camera;
@@ -12,14 +10,24 @@ public class BarebonesComputeShaderRenderer : MonoBehaviour {
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
 
+    public ComputeShader shader;
+
     //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
     private void OnRenderImage(RenderTexture source, RenderTexture destination) {
         shader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
         shader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
         float[] light = new float[3];
-        light[0] = lighting.transform.position.x;
-        light[1] = lighting.transform.position.y;
-        light[2] = lighting.transform.position.z;
+        if (lighting.type == LightType.Directional) {
+            light[0] = lighting.transform.forward.x;
+            light[1] = lighting.transform.forward.y;
+            light[2] = lighting.transform.forward.z;
+            shader.SetBool("lightIsPoint", false);
+        } else {
+            light[0] = lighting.transform.position.x;
+            light[1] = lighting.transform.position.y;
+            light[2] = lighting.transform.position.z;
+            shader.SetBool("lightIsPoint", true);
+        }
         shader.SetFloats("light", light);
         Render(source, destination);
     }

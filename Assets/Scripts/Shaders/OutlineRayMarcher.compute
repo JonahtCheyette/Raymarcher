@@ -14,9 +14,7 @@ StructuredBuffer<shape> shapes;
 
 float distToScene(float3 p) {
     float distance = 3.402823466e+38F;
-    uint numShapes, stride;
 
-    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
         float shapeDistance = sdShape(p, shapes[i]);
 
@@ -69,7 +67,7 @@ float3 getNormal(float3 p) {
 
 float getLighting(float3 p) {
     float3 l;
-    l = normalize(light - p);
+    l = lightIsPoint ? normalize(light - p) : -light;
 
     float3 n = getNormal(p);
     float dif = dot(n, l);
@@ -83,9 +81,6 @@ float getLighting(float3 p) {
 }
 
 float3 albedoAtPoint(float3 p) {
-    uint numShapes, stride;
-
-    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
         if (sdShape(p, shapes[i]) < surfDistance) {
             return shapes[i].albedo;

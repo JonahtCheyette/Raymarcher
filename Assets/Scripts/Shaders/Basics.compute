@@ -4,6 +4,8 @@ static const float surfDistance = 0.01;
 
 float4x4 cameraInverseProjection;
 float4x4 cameraToWorld;
+uint numShapes;
+bool lightIsPoint;
 
 struct shape {
     int shapeType;
@@ -18,14 +20,15 @@ struct shape {
 //a float3 for center/ normal in the case of planes
 //a float4 for rotation
 //a float3 for albedo
-//a float3 to hold shape information
+//a float3 to hold shape information (usually size)
 
 float3 rotatePoint(float3 p, float4 q) {
     //rotating a point by a quaternion
-    //assuming quaterinions are in the forem x, y, z, w
+    //assuming quaterinions are in the form x, y, z, w
     return cross(cross(q.xyz, p) + q.w * p, -q.xyz) + dot(q.xyz, p) * q.xyz + q.w * (cross(q.xyz, p) + q.w * p);
 }
 
+//most of these sdfs are from inigo something (insert link later)
 float sdSphere(float3 p, float3 center, float radius) {
     return length(p - center) - radius;
 }
@@ -59,7 +62,7 @@ float sdCylinder(float3 p, float4 rotation, float3 center, float2 size) {
 
 float sdCapsule(float3 p, float4 rotation, float3 center, float2 size) {
     float3 pos = rotatePoint(p - center, float4(-rotation.xyz, rotation.w));
-    pos.y -= clamp(pos.y, 0, size.x);
+    pos.y -= clamp(pos.y, -size.x / 2, size.x / 2);
     return length(pos) - size.y;
 }
 

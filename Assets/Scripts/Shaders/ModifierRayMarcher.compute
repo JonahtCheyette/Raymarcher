@@ -53,9 +53,7 @@ float sdModifiedShape(float3 p, shape s, modifier m) {
 
 float distToScene(float3 p) {
     float distance = 3.402823466e+38F;
-    uint numShapes, stride;
 
-    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
         distance = min(distance, sdModifiedShape(p, shapes[i], modifiers[i]));
     }
@@ -64,9 +62,6 @@ float distToScene(float3 p) {
 }
 
 float3 albedoAtPoint(float3 p) {
-    uint numShapes, stride;
-
-    shapes.GetDimensions(numShapes, stride);
     for (uint i = 0; i < numShapes; i++) {
         if (sdModifiedShape(p, shapes[i], modifiers[i]) < surfDistance) {
             return shapes[i].albedo;
@@ -100,7 +95,7 @@ float3 getNormal(float3 p) {
 
 float getLighting(float3 p) {
     float3 l;
-    l = normalize(light - p);
+    l = lightIsPoint ? normalize(light - p) : -light;
 
     float3 n = getNormal(p);
     float dif = dot(n, l);

@@ -2,11 +2,6 @@
 using UnityEditor;
 
 public class BaseRayMarchingMaster : MonoBehaviour {
-
-    public enum ShapeType {
-        box, sphere, plane, torus, cylinder, capsule
-    }
-
     public ComputeShader rayMarchingShader;
     public Light lighting;
 
@@ -16,7 +11,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private ComputeBuffer shapeBuffer;
 
-    public Shape[] shapes;
+    protected ShapeData[] shapeData;
 
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
@@ -55,6 +50,14 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         }
     }
 
+    private void GetShapes() {
+        BaseShapeDataPasser[] shapes = FindObjectsOfType<BaseShapeDataPasser>();
+        shapeData = new ShapeData[shapes.Length];
+        for (int i = 0; i < shapeData.Length; i++) {
+            shapeData[i] = shapes[i].GetShapeData();
+        }
+    }
+
     private void Awake() {
         _camera = GetComponent<Camera>();
         SetUpScene();
@@ -67,30 +70,41 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     private void SetupBuffer() {
-        shapeBuffer = new ComputeBuffer(1, Shape.GetSize());
-        rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
-        shapeBuffer.Release();
+        if (shapeBuffer == null || !shapeBuffer.IsValid()) {
+            shapeBuffer = new ComputeBuffer(1, ShapeData.GetSize());
+            rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
+            shapeBuffer.Release();
+        }
     }
 
     private void InitShapes() {
-        if(shapes.Length != 0) {
-            shapeBuffer = new ComputeBuffer(shapes.Length, Shape.GetSize());
-            shapeBuffer.SetData(shapes);
+        GetShapes();
+        if (shapeData.Length != 0) {
+            shapeBuffer = new ComputeBuffer(shapeData.Length, ShapeData.GetSize());
+            shapeBuffer.SetData(shapeData);
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
         }
     }
 
     public virtual void SetConstantShaderParameters() {
-        
+        rayMarchingShader.SetInt("numShapes", shapeBuffer.count);
     }
 
     public virtual void SetDynamicShaderParameters() {
         rayMarchingShader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
         rayMarchingShader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
         float[] light = new float[3];
-        light[0] = lighting.transform.position.x;
-        light[1] = lighting.transform.position.y;
-        light[2] = lighting.transform.position.z;
+        if (lighting.type == LightType.Directional) {
+            light[0] = lighting.transform.forward.x;
+            light[1] = lighting.transform.forward.y;
+            light[2] = lighting.transform.forward.z;
+            rayMarchingShader.SetBool("lightIsPoint", false);
+        } else {
+            light[0] = lighting.transform.position.x;
+            light[1] = lighting.transform.position.y;
+            light[2] = lighting.transform.position.z;
+            rayMarchingShader.SetBool("lightIsPoint", true);
+        }
         rayMarchingShader.SetFloats("light", light);
     }
 
@@ -108,6 +122,12 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         DestroyBuffer();
     }
 
+    private void OnEnable() {
+        DestroyBuffer();
+        SetupBuffer();
+        InitShapes();
+    }
+
     public virtual void OnValidate() {
         if (autoUpdate && Application.isPlaying && shapeBuffer != null) {
             UpdateScene();
@@ -115,32 +135,21 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     public virtual void UpdateScene() {
-        if (shapes.Length != 0) {
-            if (shapes.Length != shapeBuffer.count) {
+        GetShapes();
+        if (shapeData.Length != 0) {
+            if (shapeData.Length != shapeBuffer.count) {
                 shapeBuffer.Release();
-                shapeBuffer = new ComputeBuffer(shapes.Length, Shape.GetSize());
+                shapeBuffer = new ComputeBuffer(shapeData.Length, ShapeData.GetSize());
             }
-            shapeBuffer.SetData(shapes);
+            shapeBuffer.SetData(shapeData);
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
+            rayMarchingShader.SetInt("numShapes", shapeBuffer.count);
         } else {
             shapeBuffer.Release();
-            shapeBuffer = new ComputeBuffer(1, Shape.GetSize());
-            shapeBuffer.SetData(new Shape[1]);
+            shapeBuffer = new ComputeBuffer(1, ShapeData.GetSize());
+            shapeBuffer.SetData(new ShapeData[1]);
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
-        }
-    }
-
-    [System.Serializable]
-    public struct Shape {
-        public ShapeType shapeType;
-        //normal in the case of the plane
-        public Vector3 position;
-        public Vector4 rotation;
-        public Vector3 shapeInfo;
-        public Vector3 albedo;
-
-        public static int GetSize() {
-            return sizeof(ShapeType) + 13 * sizeof(float);
+            rayMarchingShader.SetInt("numShapes", shapeBuffer.count);
         }
     }
 }

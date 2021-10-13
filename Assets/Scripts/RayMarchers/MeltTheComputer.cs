@@ -29,8 +29,8 @@ public class MeltTheComputer : ModifierRayMarchingMaster {
     }
 
     public override void OnValidate() {
-        if (intersections.Length != shapes.Length - 1) {
-            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        if (shapeData != null && intersections.Length != shapeData.Length - 1) {
+            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapeData.Length - 1, 0)];
         }
         base.OnValidate();
     }

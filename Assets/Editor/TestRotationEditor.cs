@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-//says to use this editor for the ExpierementalTerrainHandler Script
+//says to use this editor for the TestRotation Script
 [CustomEditor(typeof(TestRotation))]
 public class TestRotationEditor : Editor {
 
@@ -10,8 +10,8 @@ public class TestRotationEditor : Editor {
         TestRotation rotationTester = (TestRotation)target;
         DrawDefaultInspector();
 
-        //creates a button that calls GenerateChunks when Pressed
-        if (GUILayout.Button("Print Rotatiom")) {
+        //creates a button that calls Test when Pressed
+        if (GUILayout.Button("Print Rotation")) {
             rotationTester.Test();
         }
     }
