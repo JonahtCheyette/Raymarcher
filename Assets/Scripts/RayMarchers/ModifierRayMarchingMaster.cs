@@ -9,8 +9,8 @@ public class ModifierRayMarchingMaster : BaseRayMarchingMaster {
     private ComputeBuffer modifierBuffer;
 
     public override void OnValidate() {
-        if (shapeData != null && modifiers.Length != shapeData.Length) {
-            modifiers = new Modifier[Mathf.Max(shapeData.Length, 0)];
+        if (shapes != null && modifiers.Length != shapes.Length) {
+            modifiers = new Modifier[Mathf.Max(shapes.Length, 0)];
         }
         base.OnValidate();
     }

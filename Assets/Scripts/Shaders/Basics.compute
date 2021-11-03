@@ -28,7 +28,7 @@ float3 rotatePoint(float3 p, float4 q) {
     return cross(cross(q.xyz, p) + q.w * p, -q.xyz) + dot(q.xyz, p) * q.xyz + q.w * (cross(q.xyz, p) + q.w * p);
 }
 
-//most of these sdfs are from inigo something (insert link later)
+//most of these sdfs are from https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float sdSphere(float3 p, float3 center, float radius) {
     return length(p - center) - radius;
 }

@@ -41,7 +41,18 @@ public class BaseShapeDataPasser : MonoBehaviour {
     }
 
     protected virtual void OnValidate() {
-        if (isActiveAndEnabled) {
+        if (transform.gameObject.activeInHierarchy) {
+            if (filter == null) {
+                filter = GetComponent<MeshFilter>();
+            }
+
+            BaseRayMarchingMaster[] raymarchers = FindObjectsOfType<BaseRayMarchingMaster>();
+            foreach (BaseRayMarchingMaster raymarcher in raymarchers) {
+                if (raymarcher.enabled) {
+                    raymarcher.OnValidate();
+                }
+            }
+
             //this has the exact same effect as putting AssingMesh() in the onvalidate call, we just don't get annoying error messages
             UnityEditor.EditorApplication.delayCall += AssignMesh;
         }
@@ -49,9 +60,6 @@ public class BaseShapeDataPasser : MonoBehaviour {
 
     protected virtual void AssignMesh() {
         UnityEditor.EditorApplication.delayCall -= AssignMesh;
-        if (filter == null) {
-            filter = GetComponent<MeshFilter>();
-        }
         if (mesh != null && filter != null) {
             Color[] cols = new Color[mesh.vertexCount];
             for (int i = 0; i < cols.Length; i++) {
@@ -63,6 +71,36 @@ public class BaseShapeDataPasser : MonoBehaviour {
             } else {
                 filter.sharedMesh = mesh;
             }
+        }
+    }
+
+    private void OnEnable() {
+        BaseRayMarchingMaster[] raymarchers = FindObjectsOfType<BaseRayMarchingMaster>();
+        foreach (BaseRayMarchingMaster raymarcher in raymarchers) {
+            if (raymarcher.enabled) {
+                raymarcher.UpdateShapeList(this, false);
+            }
+        }
+    }
+
+    private void OnDisable() {
+        BaseRayMarchingMaster[] raymarchers = FindObjectsOfType<BaseRayMarchingMaster>();
+        foreach (BaseRayMarchingMaster raymarcher in raymarchers) {
+            if (raymarcher.enabled) {
+                raymarcher.UpdateShapeList(this, true);
+            }
+        }
+    }
+
+    private void Update() {
+        if (transform.hasChanged) {
+            BaseRayMarchingMaster[] raymarchers = FindObjectsOfType<BaseRayMarchingMaster>();
+            foreach (BaseRayMarchingMaster raymarcher in raymarchers) {
+                if (raymarcher.enabled) {
+                    raymarcher.OnValidate();
+                }
+            }
+            transform.hasChanged = false;
         }
     }
 }

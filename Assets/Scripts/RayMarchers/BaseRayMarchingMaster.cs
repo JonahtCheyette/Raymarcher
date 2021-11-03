@@ -1,20 +1,21 @@
 ﻿using UnityEngine;
-using UnityEditor;
+using System.Linq;
 
 public class BaseRayMarchingMaster : MonoBehaviour {
     public ComputeShader rayMarchingShader;
     public Light lighting;
 
-    public bool autoUpdate = false;
+    public bool autoUpdate = true;
 
     private Camera _camera;
 
     private ComputeBuffer shapeBuffer;
-
-    protected ShapeData[] shapeData;
+    protected BaseShapeDataPasser[] shapes;
 
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
+
+    private bool afterOnEnfabledCalled;
 
     //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
     private void OnRenderImage(RenderTexture source, RenderTexture destination) {
@@ -50,12 +51,30 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         }
     }
 
-    private void GetShapes() {
-        BaseShapeDataPasser[] shapes = FindObjectsOfType<BaseShapeDataPasser>();
-        shapeData = new ShapeData[shapes.Length];
-        for (int i = 0; i < shapeData.Length; i++) {
-            shapeData[i] = shapes[i].GetShapeData();
+    public void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
+        if(shapes == null) {
+            shapes = new BaseShapeDataPasser[0];
         }
+        if (remove) {
+            if (shapes.Length > 0) {
+                BaseShapeDataPasser[] copyList = shapes;
+                shapes = new BaseShapeDataPasser[copyList.Length - 1];
+                int index = 0;
+                for (int i = 0; i < copyList.Length - 1; i++) {
+                    if (copyList[i] == shape) {
+                        index++;
+                    }
+                    shapes[i] = copyList[index];
+                    index++;
+                }
+            }
+        } else {
+            BaseShapeDataPasser[] copyList = shapes;
+            shapes = new BaseShapeDataPasser[copyList.Length + 1];
+            copyList.CopyTo(shapes, 0);
+            shapes[copyList.Length] = shape;
+        }
+        UpdateScene();
     }
 
     private void Awake() {
@@ -78,10 +97,14 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     private void InitShapes() {
-        GetShapes();
-        if (shapeData.Length != 0) {
-            shapeBuffer = new ComputeBuffer(shapeData.Length, ShapeData.GetSize());
-            shapeBuffer.SetData(shapeData);
+        BaseShapeDataPasser[] unorderedShapes = FindObjectsOfType<BaseShapeDataPasser>();
+        shapes = unorderedShapes;
+        if(shapeBuffer != null || shapeBuffer.IsValid()) {
+            shapeBuffer.Release();
+        }
+        if (shapes.Length != 0) {
+            shapeBuffer = new ComputeBuffer(shapes.Length, ShapeData.GetSize());
+            shapeBuffer.SetData(shapes.Select(x => x.GetShapeData()).ToArray());
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
         }
     }
@@ -94,16 +117,23 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         rayMarchingShader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
         rayMarchingShader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
         float[] light = new float[3];
-        if (lighting.type == LightType.Directional) {
-            light[0] = lighting.transform.forward.x;
-            light[1] = lighting.transform.forward.y;
-            light[2] = lighting.transform.forward.z;
-            rayMarchingShader.SetBool("lightIsPoint", false);
+        if (lighting != null) {
+            if (lighting.type == LightType.Directional) {
+                light[0] = lighting.transform.forward.x;
+                light[1] = lighting.transform.forward.y;
+                light[2] = lighting.transform.forward.z;
+                rayMarchingShader.SetBool("lightIsPoint", false);
+            } else {
+                light[0] = lighting.transform.position.x;
+                light[1] = lighting.transform.position.y;
+                light[2] = lighting.transform.position.z;
+                rayMarchingShader.SetBool("lightIsPoint", true);
+            }
         } else {
-            light[0] = lighting.transform.position.x;
-            light[1] = lighting.transform.position.y;
-            light[2] = lighting.transform.position.z;
-            rayMarchingShader.SetBool("lightIsPoint", true);
+            light[0] = -1;
+            light[1] = 0;
+            light[2] = 0;
+            rayMarchingShader.SetBool("lightIsPoint", false);
         }
         rayMarchingShader.SetFloats("light", light);
     }
@@ -116,6 +146,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private void OnDisable() {
         DestroyBuffer();
+        afterOnEnfabledCalled = false;
     }
 
     private void OnApplicationQuit() {
@@ -124,24 +155,25 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     private void OnEnable() {
         DestroyBuffer();
-        SetupBuffer();
-        InitShapes();
+        SetUpScene();
+        afterOnEnfabledCalled = true;
     }
 
     public virtual void OnValidate() {
-        if (autoUpdate && Application.isPlaying && shapeBuffer != null) {
+        if (autoUpdate && shapeBuffer != null && afterOnEnfabledCalled) {
             UpdateScene();
         }
     }
 
     public virtual void UpdateScene() {
-        GetShapes();
-        if (shapeData.Length != 0) {
-            if (shapeData.Length != shapeBuffer.count) {
+        if (shapes != null && shapes.Length != 0) {
+            if(shapeBuffer == null) {
+                shapeBuffer = new ComputeBuffer(shapes.Length, ShapeData.GetSize());
+            } else if (!shapeBuffer.IsValid() || shapes.Length != shapeBuffer.count) {
                 shapeBuffer.Release();
-                shapeBuffer = new ComputeBuffer(shapeData.Length, ShapeData.GetSize());
+                shapeBuffer = new ComputeBuffer(shapes.Length, ShapeData.GetSize());
             }
-            shapeBuffer.SetData(shapeData);
+            shapeBuffer.SetData(shapes.Select(x => x.GetShapeData()).ToArray());
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
             rayMarchingShader.SetInt("numShapes", shapeBuffer.count);
         } else {

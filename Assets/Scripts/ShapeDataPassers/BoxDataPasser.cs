@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BoxDataPasser : BaseShapeDataPasser {
     protected override Vector3 GetInfo() {
-        return transform.localScale;
+        return transform.localScale / 2;
     }
 
     protected override void AssignMesh() {

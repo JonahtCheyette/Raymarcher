@@ -51,16 +51,23 @@ public class CapsuleDataPasser : BaseShapeDataPasser {
             nextVertexIndex++;
         }
 
+        /* numTrisCylinder = 2 * numSegmentsCylinder
+         * numTrisHemisphere = 2 * (numSegmentsHemisphere - 1) * numSegmentsCylinder + numSegmentsCylinder 
+         * = 2 * numSegmentsHemisphere * numSegmentsCylinder - 2 * numSegmentsCylinder + numSegmentsCylinder
+         * = 2 * numSegmentsHemisphere * numSegmentsCylinder - numSegmentsCylinder = numSegmentsCylinder * (2 * numSegmentsHemisphere - 1)
+         * numTriangles = numTrisCylinder + 2 * numTrisHemisphere = 2 * numSegmentsCylinder + 2 * numTrisHemisphere = 2 * (numSegmentsCylinder + numTrisHemisphere)
+         */
+        int numTrisHemisphere = numSegmentsCylinder * (2 * numSegmentsHemisphere - 1);
+        int numTriangles = 2 * (numSegmentsCylinder + numTrisHemisphere);
+
         //triangles
-        if (meshTriangles == null) {
+        if (meshTriangles == null || mesh.triangles.Length == 0 || meshTriangles.Length != numTriangles * 3) {
             /* numTrisCylinder = 2 * numSegmentsCylinder
              * numTrisHemisphere = 2 * (numSegmentsHemisphere - 1) * numSegmentsCylinder + numSegmentsCylinder 
              * = 2 * numSegmentsHemisphere * numSegmentsCylinder - 2 * numSegmentsCylinder + numSegmentsCylinder
              * = 2 * numSegmentsHemisphere * numSegmentsCylinder - numSegmentsCylinder = numSegmentsCylinder * (2 * numSegmentsHemisphere - 1)
              * numTriangles = numTrisCylinder + 2 * numTrisHemisphere = 2 * numSegmentsCylinder + 2 * numTrisHemisphere = 2 * (numSegmentsCylinder + numTrisHemisphere)
              */
-            int numTrisHemisphere = numSegmentsCylinder * (2 * numSegmentsHemisphere - 1);
-            int numTriangles = 2 * (numSegmentsCylinder + numTrisHemisphere);
             int numVerticesHemisphere = 1 + numSegmentsHemisphere * numSegmentsCylinder;
             meshTriangles = new int[numTriangles * 3];
 

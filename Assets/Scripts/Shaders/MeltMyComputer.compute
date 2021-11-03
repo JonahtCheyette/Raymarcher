@@ -154,7 +154,7 @@ float3 albedoAtPoint(float3 p) {
         distance = min(distance, shapeDistance);
     }
 
-    return col * (distance < 3.402823462e+38F);
+    return col * (distance < surfDistance * 1000);
 }
 
 [numthreads(8, 4, 1)]

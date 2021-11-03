@@ -37,7 +37,7 @@ public class TorusDataPasser : BaseShapeDataPasser {
         }
 
         //triangles
-        if (meshTriangles == null) {
+        if (meshTriangles == null || mesh.triangles.Length == 0 || meshTriangles.Length != vertices.Length * 6) {
             int numTriangles = vertices.Length * 2;
             meshTriangles = new int[numTriangles * 3];
             for (int i = 0; i < vertices.Length; i++) {
