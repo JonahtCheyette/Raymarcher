@@ -11,17 +11,25 @@ public class IntersectionRayMarchingMaster : BaseRayMarchingMaster {
 
     private ComputeBuffer intersectionBuffer;
 
-    public override void OnValidate() {
+    protected override void ResetShapeList() {
+        base.ResetShapeList();
         if (shapes != null && intersections.Length != shapes.Length - 1) {
             intersections = new IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
         }
-        base.OnValidate();
+    }
+
+    public override void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
+        UpdateShapes(shape, remove);
+        if (shapes != null && intersections.Length != shapes.Length - 1) {
+            intersections = new IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        }
+        UpdateScene();
     }
 
     public override void UpdateScene() {
         base.UpdateScene();
         if (intersections.Length != 0) {
-            if (intersections.Length != intersectionBuffer.count) {
+            if (!intersectionBuffer.IsValid() || intersections.Length != intersectionBuffer.count) {
                 intersectionBuffer.Release();
                 intersectionBuffer = new ComputeBuffer(intersections.Length, sizeof(IntersectionType));
             }

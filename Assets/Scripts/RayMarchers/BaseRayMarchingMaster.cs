@@ -15,6 +15,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
 
+    //keeps weird errors from popping up
     private bool afterOnEnfabledCalled;
 
     //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
@@ -51,8 +52,13 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         }
     }
 
-    public void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
-        if(shapes == null) {
+    public virtual void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
+        UpdateShapes(shape, remove);
+        UpdateScene();
+    }
+
+    protected void UpdateShapes(BaseShapeDataPasser shape, bool remove) {
+        if (shapes == null) {
             shapes = new BaseShapeDataPasser[0];
         }
         if (remove) {
@@ -69,12 +75,20 @@ public class BaseRayMarchingMaster : MonoBehaviour {
                 }
             }
         } else {
-            BaseShapeDataPasser[] copyList = shapes;
-            shapes = new BaseShapeDataPasser[copyList.Length + 1];
-            copyList.CopyTo(shapes, 0);
-            shapes[copyList.Length] = shape;
+            bool inShapesAlready = false;
+            for (int i = 0; i < shapes.Length; i++) {
+                if (shapes[i] == shape) {
+                    inShapesAlready = true;
+                    break;
+                }
+            }
+            if (!inShapesAlready) {
+                BaseShapeDataPasser[] copyList = shapes;
+                shapes = new BaseShapeDataPasser[copyList.Length + 1];
+                copyList.CopyTo(shapes, 0);
+                shapes[copyList.Length] = shape;
+            }
         }
-        UpdateScene();
     }
 
     private void Awake() {
@@ -160,9 +174,15 @@ public class BaseRayMarchingMaster : MonoBehaviour {
     }
 
     public virtual void OnValidate() {
+        ResetShapeList();
         if (autoUpdate && shapeBuffer != null && afterOnEnfabledCalled) {
             UpdateScene();
         }
+    }
+
+    protected virtual void ResetShapeList() {
+        BaseShapeDataPasser[] unorderedShapes = FindObjectsOfType<BaseShapeDataPasser>();
+        shapes = unorderedShapes;
     }
 
     public virtual void UpdateScene() {
@@ -183,5 +203,12 @@ public class BaseRayMarchingMaster : MonoBehaviour {
             rayMarchingShader.SetBuffer(0, "shapes", shapeBuffer);
             rayMarchingShader.SetInt("numShapes", shapeBuffer.count);
         }
+    }
+
+    public string GetShapeName(int shapeIndex) {
+        if(shapeIndex >= 0 && shapeIndex < shapes.Length) {
+            return shapes[shapeIndex].gameObject.name;
+        }
+        return "";
     }
 }

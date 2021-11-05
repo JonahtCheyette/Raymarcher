@@ -6,7 +6,7 @@ using UnityEditor;
 public class TestRotationEditor : Editor {
 
     public override void OnInspectorGUI() {
-        //gets the ExpierementalTerrainHandler reference
+        //gets the TestRotation reference
         TestRotation rotationTester = (TestRotation)target;
         DrawDefaultInspector();
 
