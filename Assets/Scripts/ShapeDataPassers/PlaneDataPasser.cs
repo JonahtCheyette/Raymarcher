@@ -43,6 +43,10 @@ public class PlaneDataPasser : BaseShapeDataPasser {
         return Vector3.right * distanceAlongNormal;
     }
 
+    protected override Vector3 GetPosition() {
+        return transform.up;
+    }
+
     protected override ShapeType GetShapeType() {
         return ShapeType.plane;
     }

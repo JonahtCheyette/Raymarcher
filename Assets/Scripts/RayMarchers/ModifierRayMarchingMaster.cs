@@ -8,17 +8,25 @@ public class ModifierRayMarchingMaster : BaseRayMarchingMaster {
 
     private ComputeBuffer modifierBuffer;
 
-    public override void OnValidate() {
+    protected override void ResetShapeList() {
+        base.ResetShapeList();
         if (shapes != null && modifiers.Length != shapes.Length) {
             modifiers = new Modifier[Mathf.Max(shapes.Length, 0)];
         }
-        base.OnValidate();
+    }
+
+    public override void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
+        UpdateShapes(shape, remove); 
+        if (shapes != null && modifiers.Length != shapes.Length) {
+            modifiers = new Modifier[Mathf.Max(shapes.Length, 0)];
+        }
+        UpdateScene();
     }
 
     public override void UpdateScene() {
         base.UpdateScene();
         if (modifiers.Length != 0) {
-            if (modifiers.Length != modifierBuffer.count) {
+            if (!modifierBuffer.IsValid() || modifiers.Length != modifierBuffer.count) {
                 modifierBuffer.Release();
                 modifierBuffer = new ComputeBuffer(modifiers.Length, Modifier.getSize());
             }
