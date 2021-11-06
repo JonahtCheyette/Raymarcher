@@ -148,7 +148,7 @@ float3 albedoAtPoint(float3 p) {
     float3 col = 1;
 
     for (uint i = 0; i < numShapes; i++) {
-        float shapeDistance = sdShape(p, shapes[i]);
+        float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
 
         col = blendColor(distance, shapeDistance, col, shapes[i].albedo, smoothing);
         distance = min(distance, shapeDistance);
