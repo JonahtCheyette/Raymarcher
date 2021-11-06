@@ -36,12 +36,6 @@ public class ModifierRayMarchingMasterEditor : Editor {
                 EditorGUILayout.LabelField(rayMarchingMaster.GetShapeName(i));
                 rayMarchingMaster.modifiers[i].elongation = EditorGUILayout.Vector3Field("Elongation", rayMarchingMaster.modifiers[i].elongation);
                 rayMarchingMaster.modifiers[i].rounding = Mathf.Max(EditorGUILayout.FloatField("Rounding", rayMarchingMaster.modifiers[i].rounding), 0);
-                if (EditorGUILayout.Toggle("Onion", rayMarchingMaster.modifiers[i].doOnioning == 1)) {
-                    rayMarchingMaster.modifiers[i].doOnioning = 1;
-                } else {
-                    rayMarchingMaster.modifiers[i].doOnioning = 0;
-                }
-                rayMarchingMaster.modifiers[i].layerThickness = Mathf.Max(EditorGUILayout.FloatField("Onion Layer Thickness", rayMarchingMaster.modifiers[i].layerThickness), 0.01f);
             }
         }
         serializedObject.ApplyModifiedProperties();
@@ -51,7 +45,7 @@ public class ModifierRayMarchingMasterEditor : Editor {
             rayMarchingMaster.OnValidate();
         } else {
             for (int i = 0; i < oldModifiers.Length; i++) {
-                if (oldModifiers[i].doOnioning != rayMarchingMaster.modifiers[i].doOnioning || oldModifiers[i].elongation != rayMarchingMaster.modifiers[i].elongation || oldModifiers[i].rounding != rayMarchingMaster.modifiers[i].rounding || oldModifiers[i].layerThickness != rayMarchingMaster.modifiers[i].layerThickness) {
+                if (oldModifiers[i].elongation != rayMarchingMaster.modifiers[i].elongation || oldModifiers[i].rounding != rayMarchingMaster.modifiers[i].rounding) {
                     rayMarchingMaster.OnValidate();
                     break;
                 }
