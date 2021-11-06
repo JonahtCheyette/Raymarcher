@@ -41,7 +41,7 @@ public class ModifierRayMarchingMasterEditor : Editor {
                 } else {
                     rayMarchingMaster.modifiers[i].doOnioning = 0;
                 }
-                rayMarchingMaster.modifiers[i].layerThickness = EditorGUILayout.FloatField("Onion Layer Thickness", rayMarchingMaster.modifiers[i].layerThickness);
+                rayMarchingMaster.modifiers[i].layerThickness = Mathf.Max(EditorGUILayout.FloatField("Onion Layer Thickness", rayMarchingMaster.modifiers[i].layerThickness), 0.01f);
             }
         }
         serializedObject.ApplyModifiedProperties();

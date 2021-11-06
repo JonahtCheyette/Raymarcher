@@ -12,27 +12,38 @@ public class MeltTheComputer : ModifierRayMarchingMaster {
     [Min(0)]
     public float outlineSize;
 
-    public Color inner;
-    public Color outer;
+    public Color outlineInnerColor;
+    public Color outlineOuterColor;
 
     public IntersectionRayMarchingMaster.IntersectionType[] intersections;
 
     private ComputeBuffer intersectionBuffer;
 
+    protected override void ResetShapeList() {
+        base.ResetShapeList();
+        if (shapes != null && intersections.Length != shapes.Length - 1) {
+            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        }
+    }
+
+    public override void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
+        UpdateShapes(shape, remove);
+        if (shapes != null && intersections.Length != shapes.Length - 1) {
+            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        }
+        if (shapes != null && modifiers.Length != shapes.Length) {
+            modifiers = new Modifier[Mathf.Max(shapes.Length, 0)];
+        }
+        UpdateScene();
+    }
+
     public override void SetDynamicShaderParameters() {
         base.SetDynamicShaderParameters();
         rayMarchingShader.SetFloat("outlineSize", outlineSize);
         rayMarchingShader.SetFloat("outlineStrength", outlineStrength);
-        rayMarchingShader.SetFloats("inner", new float[] { inner.r, inner.g, inner.b });
-        rayMarchingShader.SetFloats("outer", new float[] { outer.r, outer.g, outer.b });
+        rayMarchingShader.SetFloats("inner", new float[] { outlineInnerColor.r, outlineInnerColor.g, outlineInnerColor.b });
+        rayMarchingShader.SetFloats("outer", new float[] { outlineOuterColor.r, outlineOuterColor.g, outlineOuterColor.b });
         rayMarchingShader.SetFloat("smoothing", smoothing);
-    }
-
-    public override void OnValidate() {
-        if (shapes != null && intersections.Length != shapes.Length - 1) {
-            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
-        }
-        base.OnValidate();
     }
 
     public override void UpdateScene() {
