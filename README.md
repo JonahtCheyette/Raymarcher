@@ -41,7 +41,7 @@ As its name suggests, this is the most barebones renderer in the project. Ignore
 The most basic ray marcher in the project. Simply takes your scene, and renders it using raymarching. As such, it's kind of pointless. I mostly made it to make sure I understood the theory, before moving on to cooler applications. No special parameters.  
   
 ***Intersection Ray Marching Master***  
-Allows you to set a special intersection type for each object in the scene.  
+Allows you to set a special intersection type for each object in the scene. Note that order matters, and the first shape should always be set to union. If you want to change the order, unfortunately at present the ony way is to add new shapes in, and delete old ones. The order is newest shapes first.  
 **Union:** The regular rendering type.  
 **Subtraction:** Makes the shape, as well as anything that is intersecting with it, invisible.  
 **Intersection:** Makes it so that only things intersecting with the shape render.  
@@ -59,5 +59,21 @@ Allows you to set a smoothing parameter that causes shapes to blend together. Th
   
 ***Melt The Computer***  
 All of the raymarchers above, put together. In addition, there are 2 new modifiers you can assign to each shape.  
-**Onion:** Whether or not to "Onion" the shape, or have the shape be made out of consecutive layers, kind of like a matryoshka doll.  
-**Onion Layer Thickness:** How thick the onion layers should be.
+**Onion:** Whether or not to "Onion" the shape, or have the shape be a hollow shell.  
+**Onion Layer Thickness:** How thick the shell should be.
+
+## Screenshots
+![Image 1](https://cdn.discordapp.com/attachments/647518062328938497/911811172729253928/Screenshot_76.png)  
+A composite shape, made using the intersection ray marcher. Made with a cube, a sphere, and 3 cylinders.  
+  
+![Image 2](https://cdn.discordapp.com/attachments/647518062328938497/911811173089951804/Screenshot_77.png)  
+The same shape, but lit with a point light from the inside, and given an outline  
+  
+![Image 3](https://cdn.discordapp.com/attachments/647518062328938497/911811173370961980/Screenshot_78.png)  
+My attempt at the Dr. Manhattan logo.  
+  
+![Image 4](https://cdn.discordapp.com/attachments/647518062328938497/911811173601652746/Screenshot_79.png)  
+A bowl made using the onioning feature  
+  
+![Image 5](https://cdn.discordapp.com/attachments/647518062328938497/911811173836554311/Screenshot_80.png)  
+A tower, made to show off the smoothing feature.  
