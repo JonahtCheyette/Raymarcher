@@ -21,15 +21,15 @@ public class MeltTheComputer : ModifierRayMarchingMaster {
 
     protected override void ResetShapeList() {
         base.ResetShapeList();
-        if (shapes != null && intersections.Length != shapes.Length - 1) {
-            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        if (shapes != null && intersections.Length != shapes.Length) {
+            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length, 0)];
         }
     }
 
     public override void UpdateShapeList(BaseShapeDataPasser shape, bool remove) {
         UpdateShapes(shape, remove);
-        if (shapes != null && intersections.Length != shapes.Length - 1) {
-            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length - 1, 0)];
+        if (shapes != null && intersections.Length != shapes.Length) {
+            intersections = new IntersectionRayMarchingMaster.IntersectionType[Mathf.Max(shapes.Length, 0)];
         }
         if (shapes != null && modifiers.Length != shapes.Length) {
             modifiers = new Modifier[Mathf.Max(shapes.Length, 0)];

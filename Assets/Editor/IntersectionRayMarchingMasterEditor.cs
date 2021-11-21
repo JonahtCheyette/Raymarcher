@@ -32,7 +32,7 @@ public class IntersectionRayMarchingMasterEditor : Editor {
         showIntersections = EditorGUILayout.Foldout(showIntersections, "Intersections");
         if (showIntersections) {
             for (int i = 0; i < rayMarchingMaster.intersections.Length; i++) {
-                rayMarchingMaster.intersections[i] = (IntersectionRayMarchingMaster.IntersectionType)EditorGUILayout.EnumPopup($"{rayMarchingMaster.GetShapeName(i)} & {rayMarchingMaster.GetShapeName(i + 1)}", rayMarchingMaster.intersections[i]);
+                rayMarchingMaster.intersections[i] = (IntersectionRayMarchingMaster.IntersectionType)EditorGUILayout.EnumPopup($"{rayMarchingMaster.GetShapeName(i)}", rayMarchingMaster.intersections[i]);
             }
         }
         serializedObject.ApplyModifiedProperties();

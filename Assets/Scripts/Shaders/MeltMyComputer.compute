@@ -65,22 +65,17 @@ float distToScene(float3 p) {
 
     for (uint i = 0; i < numShapes; i++) {
         float shapeDistance = sdModifiedShape(p, shapes[i], modifiers[i]);
-        if (i != 0) {
-            if (intersections[i - 1] == 0) {
-                //union
-                distance = smin(distance, shapeDistance, smoothing);
-            }
-            else if (intersections[i - 1] == 1) {
-                //subtraction
-                distance = smax(distance, -shapeDistance, smoothing);
-            }
-            else {
-                //intersection
-                distance = smax(distance, shapeDistance, smoothing);
-            }
+        if (intersections[i] == 0) {
+            //union
+            distance = smin(distance, shapeDistance, smoothing);
+        }
+        else if (intersections[i] == 1) {
+            //subtraction
+            distance = smax(distance, -shapeDistance, smoothing);
         }
         else {
-            distance = smin(distance, shapeDistance, smoothing);
+            //intersection
+            distance = smax(distance, shapeDistance, smoothing);
         }
     }
 
