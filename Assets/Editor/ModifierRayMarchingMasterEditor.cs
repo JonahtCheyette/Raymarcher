@@ -30,6 +30,7 @@ public class ModifierRayMarchingMasterEditor : Editor {
         EditorGUILayout.PropertyField(shaderProp);
         EditorGUILayout.PropertyField(lightingProp);
         rayMarchingMaster.autoUpdate = EditorGUILayout.Toggle("Auto Update", rayMarchingMaster.autoUpdate);
+
         showModifiers = EditorGUILayout.Foldout(showModifiers, "Modifiers");
         if (showModifiers) {
             for (int i = 0; i < rayMarchingMaster.modifiers.Length; i++) {

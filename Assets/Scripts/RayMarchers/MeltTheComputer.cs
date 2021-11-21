@@ -49,37 +49,25 @@ public class MeltTheComputer : ModifierRayMarchingMaster {
     public override void UpdateScene() {
         base.UpdateScene();
         if (intersections.Length != 0) {
-            if (intersections.Length != intersectionBuffer.count) {
+            if (intersectionBuffer == null) {
+                intersectionBuffer = new ComputeBuffer(intersections.Length, sizeof(IntersectionRayMarchingMaster.IntersectionType));
+            } else if (!intersectionBuffer.IsValid() || intersections.Length != intersectionBuffer.count) {
                 intersectionBuffer.Release();
                 intersectionBuffer = new ComputeBuffer(intersections.Length, sizeof(IntersectionRayMarchingMaster.IntersectionType));
             }
             intersectionBuffer.SetData(intersections);
-            rayMarchingShader.SetBuffer(0, "intersections", intersectionBuffer);
         } else {
             intersectionBuffer.Release();
             intersectionBuffer = new ComputeBuffer(1, sizeof(IntersectionRayMarchingMaster.IntersectionType));
             intersectionBuffer.SetData(new IntersectionRayMarchingMaster.IntersectionType[1]);
-            rayMarchingShader.SetBuffer(0, "intersections", intersectionBuffer);
         }
+        rayMarchingShader.SetBuffer(0, "intersections", intersectionBuffer);
     }
 
     public override void DestroyBuffer() {
         base.DestroyBuffer();
         if (intersectionBuffer != null) {
             intersectionBuffer.Release();
-        }
-    }
-
-    public override void SetUpScene() {
-        base.SetUpScene();
-        intersectionBuffer = new ComputeBuffer(1, sizeof(IntersectionRayMarchingMaster.IntersectionType));
-        rayMarchingShader.SetBuffer(0, "intersections", intersectionBuffer);
-        intersectionBuffer.Release();
-
-        if (intersections.Length != 0) {
-            intersectionBuffer = new ComputeBuffer(intersections.Length, sizeof(IntersectionRayMarchingMaster.IntersectionType));
-            intersectionBuffer.SetData(intersections);
-            rayMarchingShader.SetBuffer(0, "intersections", intersectionBuffer);
         }
     }
 }

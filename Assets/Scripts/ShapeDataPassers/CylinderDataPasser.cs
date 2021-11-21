@@ -8,6 +8,11 @@ public class CylinderDataPasser : BaseShapeDataPasser {
     [Min(0)]
     public float radius = 0.5f;
 
+    protected override void OnEnable() {
+        base.OnEnable();
+        OnValidate();
+    }
+
     protected override void OnValidate() {
         base.OnValidate();
         transform.localScale = new Vector3(radius * 2, height / 2, radius * 2);
@@ -31,7 +36,7 @@ public class CylinderDataPasser : BaseShapeDataPasser {
     }
 
     protected override Vector3 GetInfo() {
-        return new Vector3(height, radius);
+        return new Vector3(height / 2f, radius);
     }
 
     protected override ShapeType GetShapeType() {

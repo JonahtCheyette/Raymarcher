@@ -29,6 +29,7 @@ public class IntersectionRayMarchingMasterEditor : Editor {
         EditorGUILayout.PropertyField(shaderProp);
         EditorGUILayout.PropertyField(lightingProp);
         rayMarchingMaster.autoUpdate = EditorGUILayout.Toggle("Auto Update", rayMarchingMaster.autoUpdate);
+
         showIntersections = EditorGUILayout.Foldout(showIntersections, "Intersections");
         if (showIntersections) {
             for (int i = 0; i < rayMarchingMaster.intersections.Length; i++) {

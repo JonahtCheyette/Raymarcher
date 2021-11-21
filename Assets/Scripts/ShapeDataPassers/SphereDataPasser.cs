@@ -6,6 +6,11 @@ public class SphereDataPasser : BaseShapeDataPasser {
     [Min(0)]
     public float radius;
 
+    protected override void OnEnable() {
+        base.OnEnable();
+        OnValidate();
+    }
+
     protected override void OnValidate() {
         base.OnValidate();
         transform.localScale = Vector3.one * radius * 2;

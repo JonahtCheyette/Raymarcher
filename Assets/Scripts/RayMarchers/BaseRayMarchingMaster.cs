@@ -61,28 +61,30 @@ public class BaseRayMarchingMaster : MonoBehaviour {
         if (shapes == null) {
             shapes = new BaseShapeDataPasser[0];
         }
+        int shapeIndex = -1;
+        for (int i = 0; i < shapes.Length; i++) {
+            if (shapes[i] == shape) {
+                shapeIndex = i;
+                break;
+            }
+        }
         if (remove) {
             if (shapes.Length > 0) {
-                BaseShapeDataPasser[] copyList = shapes;
-                shapes = new BaseShapeDataPasser[copyList.Length - 1];
-                int index = 0;
-                for (int i = 0; i < copyList.Length - 1; i++) {
-                    if (copyList[i] == shape) {
+                if (shapeIndex != -1) {
+                    BaseShapeDataPasser[] copyList = shapes;
+                    shapes = new BaseShapeDataPasser[copyList.Length - 1];
+                    int index = 0;
+                    for (int i = 0; i < copyList.Length - 1; i++) {
+                        if (i == shapeIndex) {
+                            index++;
+                        }
+                        shapes[i] = copyList[index];
                         index++;
                     }
-                    shapes[i] = copyList[index];
-                    index++;
                 }
             }
         } else {
-            bool inShapesAlready = false;
-            for (int i = 0; i < shapes.Length; i++) {
-                if (shapes[i] == shape) {
-                    inShapesAlready = true;
-                    break;
-                }
-            }
-            if (!inShapesAlready) {
+            if (shapeIndex != -1) {
                 BaseShapeDataPasser[] copyList = shapes;
                 shapes = new BaseShapeDataPasser[copyList.Length + 1];
                 copyList.CopyTo(shapes, 0);
@@ -175,7 +177,7 @@ public class BaseRayMarchingMaster : MonoBehaviour {
 
     public virtual void OnValidate() {
         ResetShapeList();
-        if (autoUpdate && shapeBuffer != null && afterOnEnfabledCalled) {
+        if (autoUpdate && afterOnEnfabledCalled) {
             UpdateScene();
         }
     }

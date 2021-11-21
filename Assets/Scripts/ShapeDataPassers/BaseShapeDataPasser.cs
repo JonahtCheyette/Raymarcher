@@ -74,7 +74,7 @@ public class BaseShapeDataPasser : MonoBehaviour {
         }
     }
 
-    private void OnEnable() {
+    protected virtual void OnEnable() {
         BaseRayMarchingMaster[] raymarchers = FindObjectsOfType<BaseRayMarchingMaster>();
         foreach (BaseRayMarchingMaster raymarcher in raymarchers) {
             if (raymarcher.enabled) {
@@ -90,6 +90,10 @@ public class BaseShapeDataPasser : MonoBehaviour {
                 raymarcher.UpdateShapeList(this, true);
             }
         }
+    }
+
+    private void OnDestroy() {
+        OnDisable();
     }
 
     private void Update() {
